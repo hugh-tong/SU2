@@ -956,7 +956,6 @@ void CEulerSolver::SetNondimensionalization(CConfig *config, unsigned short iMes
   }
 
   /*-- Compute the freestream energy. ---*/
-
   if (tkeNeeded) { Energy_FreeStream += Tke_FreeStream; }; config->SetEnergy_FreeStream(Energy_FreeStream);
 
   /*--- Compute non dimensional quantities. By definition,
@@ -4453,7 +4452,9 @@ void CEulerSolver::BC_Far_Field(CGeometry *geometry, CSolver **solver_container,
       V_infty[nDim+2] = Density;
       V_infty[nDim+3] = Energy + Pressure/Density;
 
-
+      cout << "V INFTY------------------------"<<endl;
+      for (auto iVar=0; iVar<nPrimVar;iVar++)
+        cout <<V_infty[iVar]<<endl;
 
       /*--- Set various quantities in the numerics class ---*/
 
@@ -4467,7 +4468,9 @@ void CEulerSolver::BC_Far_Field(CGeometry *geometry, CSolver **solver_container,
       /*--- Compute the convective residual using an upwind scheme ---*/
 
       auto residual = conv_numerics->ComputeResidual(config);
-
+      //cout << "FAR CONV RES: "<<endl;
+      //for (auto iVar=0; iVar<nVar; iVar++)
+      //   cout << residual[iVar]<<endl;
       /*--- Update residual value ---*/
 
       LinSysRes.AddBlock(iPoint, residual);
@@ -4510,7 +4513,9 @@ void CEulerSolver::BC_Far_Field(CGeometry *geometry, CSolver **solver_container,
 
         auto residual = visc_numerics->ComputeResidual(config);
         LinSysRes.SubtractBlock(iPoint, residual);
-
+      //cout << "FAR VISC RES: "<<endl;
+      //for (auto iVar=0; iVar<nVar; iVar++)
+      //   cout << residual[iVar]<<endl;
         /*--- Viscous Jacobian contribution for implicit integration ---*/
 
         if (implicit)
@@ -7117,6 +7122,9 @@ void CEulerSolver::BC_Supersonic_Outlet(CGeometry *geometry, CSolver **solver_co
       /*--- Current solution at this boundary node ---*/
 
       V_domain = nodes->GetPrimitive(iPoint);
+      //cout << "V DOMAIN--------------------"<<endl;
+      //for (auto iVar=0; iVar<nPrimVar;iVar++)
+      //  cout <<V_domain[iVar]<<endl;
 
       /*--- Normal vector for this vertex (negate for outward convention) ---*/
 
@@ -7135,7 +7143,9 @@ void CEulerSolver::BC_Supersonic_Outlet(CGeometry *geometry, CSolver **solver_co
       /*--- Compute the residual using an upwind scheme ---*/
 
       auto residual = conv_numerics->ComputeResidual(config);
-
+      //cout << "SUP CONV RES: "<<endl;
+      //for (auto iVar=0; iVar<nVar; iVar++)
+      //   cout << residual[iVar]<<endl;
       LinSysRes.AddBlock(iPoint, residual);
 
       /*--- Jacobian contribution for implicit integration ---*/

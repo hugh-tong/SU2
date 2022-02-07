@@ -98,7 +98,6 @@ CNumerics::ResidualType<> CUpwAUSM_NEMO::ComputeResidual(const CConfig *config) 
     u_i[iDim] = V_i[VEL_INDEX+iDim];
     u_j[iDim] = V_j[VEL_INDEX+iDim];
   }
-
   P_i   = V_i[P_INDEX];   P_j   = V_j[P_INDEX];
   h_i   = V_i[H_INDEX];   h_j   = V_j[H_INDEX];
   a_i   = V_i[A_INDEX];   a_j   = V_j[A_INDEX];

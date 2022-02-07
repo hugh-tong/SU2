@@ -93,10 +93,11 @@ CNEMOEulerVariable::CNEMOEulerVariable(su2double density, const su2double *mass_
       Solution(iPoint,iSpecies) = density * mass_frac[iSpecies];
     for (iDim = 0; iDim < nDim; iDim++)
       Solution(iPoint, nSpecies+iDim) = density * velocity[iDim];
-    Solution(iPoint, nVar-1) = density * energy;
-    Solution(iPoint, nVar) = density * energy_ve;
-
+    Solution(iPoint, nVar-2) = density * energy;
+    Solution(iPoint, nVar-1) = density * energy_ve;
+    cout <<"EVE in VAR: "<< Solution(iPoint,nVar-1)<<endl;
   }  
+  Solution_Old = Solution;
 
   //if (classical_rk4) Solution_New = Solution;
 
@@ -173,10 +174,6 @@ bool CNEMOEulerVariable::Cons2PrimVar(su2double *U, su2double *V,
   /*--- Rename variables for convenience ---*/
   su2double rhoE   = U[nSpecies+nDim];     // Density * energy [J/m3]
   su2double rhoEve = U[nSpecies+nDim+1];   // Density * energy_ve [J/m3]
-
-  /*--- Scale rhoE with turbulent kinetic energy ---*/
-  rhoE -= turb_ke;                         // Density * energy - turb_ke [J/m3]
-
   /*--- Assign species & mixture density ---*/
   // Note: if any species densities are < 0, these values are re-assigned
   //       in the primitive AND conserved vectors to ensure positive density
@@ -197,6 +194,9 @@ bool CNEMOEulerVariable::Cons2PrimVar(su2double *U, su2double *V,
   // Rename for convenience
   su2double rho = V[RHO_INDEX];
 
+  /*--- Scale rhoE with turbulent kinetic energy ---*/
+  rhoE -= rho * turb_ke;        // Density * energy - turb_ke [J/m3]
+
   /*--- Assign velocity^2 ---*/
   su2double sqvel = 0.0;
   for (iDim = 0; iDim < nDim; iDim++) {
@@ -205,12 +205,17 @@ bool CNEMOEulerVariable::Cons2PrimVar(su2double *U, su2double *V,
   }
 
   /*--- Assign temperatures ---*/
+  //cout << "rhoE: "<<rhoE<<endl;
+  //cout << "rhoN2: "<<rhos[0]<<endl;
+  //cout << "rhonN: "<<rhos[1]<<endl;
+  //cout << "rhoEve: "<<rhoEve<<endl;
+  //cout <<"vel: "<<0.5*rho*sqvel<<endl;
   const auto& T = fluidmodel->ComputeTemperatures(rhos, rhoE, rhoEve, 0.5*rho*sqvel);
 
   /*--- Temperatures ---*/
   V[T_INDEX]   = T[0];
   V[TVE_INDEX] = T[1];
-
+  //cout <<"TS "<<T[0]<<"  "<<T[1]<<endl;
   // Determine if the temperature lies within the acceptable range
   if (V[T_INDEX] <= Tmin)      { nonPhys = true; return nonPhys;}
   else if (V[T_INDEX] >= Tmax) { nonPhys = true; return nonPhys;}

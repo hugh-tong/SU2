@@ -156,7 +156,8 @@ CNEMOEulerSolver::CNEMOEulerSolver(CGeometry *geometry, CConfig *config,
   Temperature_ve_Inf = config->GetTemperature_ve_FreeStreamND();
   Energy_Inf         = config->GetEnergy_FreeStreamND();
   Energy_ve_Inf      = config->GetEnergy_ve_FreeStreamND();   
-
+  Tke_Inf            = config->GetTke_FreeStreamND();
+  cout <<"TKE!!!!: "<<Tke_Inf<<endl;
   /*--- Initialize the secondary values for direct derivative approxiations ---*/
   switch(direct_diff) {
   case NO_DERIVATIVE:
@@ -219,7 +220,7 @@ CNEMOEulerSolver::CNEMOEulerSolver(CGeometry *geometry, CConfig *config,
   }
   SetBaseClassPointerToNodes();
 
-  node_infty->SetPrimVar(0, 0.0, 0.0, FluidModel);
+  node_infty->SetPrimVar(0, 0.0, Tke_Inf, FluidModel);
 
   /*--- Initial comms. ---*/
 
@@ -1211,9 +1212,11 @@ void CNEMOEulerSolver::SetNondimensionalization(CConfig *config, unsigned short 
   Viscosity_FreeStreamND = Viscosity_FreeStream / Viscosity_Ref;   config->SetViscosity_FreeStreamND(Viscosity_FreeStreamND);
 
   Tke_FreeStream  = 3.0/2.0*(ModVel_FreeStream*ModVel_FreeStream*config->GetTurbulenceIntensity_FreeStream()*config->GetTurbulenceIntensity_FreeStream());
+  if (!tkeNeeded) Tke_FreeStream = 0.0; 
   config->SetTke_FreeStream(Tke_FreeStream);
 
   Tke_FreeStreamND  = 3.0/2.0*(ModVel_FreeStreamND*ModVel_FreeStreamND*config->GetTurbulenceIntensity_FreeStream()*config->GetTurbulenceIntensity_FreeStream());
+  if (!tkeNeeded) Tke_FreeStreamND = 0.0;
   config->SetTke_FreeStreamND(Tke_FreeStreamND);
 
   Omega_FreeStream = Density_FreeStream*Tke_FreeStream/(Viscosity_FreeStream*config->GetTurb2LamViscRatio_FreeStream());
@@ -1226,7 +1229,7 @@ void CNEMOEulerSolver::SetNondimensionalization(CConfig *config, unsigned short 
 
   Energy_FreeStreamND    = energies[0] + 0.5*ModVel_FreeStreamND *ModVel_FreeStreamND;
   Energy_ve_FreeStreamND = energies[1];
-
+  //cout << Energy_ve_FreeStreamND<<endl;
   if (viscous) {
 
     /*--- Constant viscosity model ---*/
@@ -1242,7 +1245,9 @@ void CNEMOEulerSolver::SetNondimensionalization(CConfig *config, unsigned short 
 
   }
 
-  if (tkeNeeded) { Energy_FreeStreamND += Tke_FreeStreamND; };  config->SetEnergy_FreeStreamND(Energy_FreeStreamND);
+  if (tkeNeeded) { Energy_FreeStreamND += Tke_FreeStreamND; };
+  config->SetEnergy_FreeStreamND(Energy_FreeStreamND);
+  config->SetEnergy_ve_FreeStreamND(Energy_ve_FreeStreamND);  
 
   Energy_Ref    = Energy_FreeStream/Energy_FreeStreamND; config->SetEnergy_Ref(Energy_Ref);
   Energy_ve_Ref = Energy_ve_FreeStream/Energy_ve_FreeStreamND; config->SetEnergy_ve_Ref(Energy_ve_Ref );
@@ -1604,13 +1609,16 @@ void CNEMOEulerSolver::BC_Far_Field(CGeometry *geometry, CSolver **solver_contai
         V_infty[VEL_INDEX+iDim]=V_temp[VEL_INDEX+iDim];
 
       su2double enthalpy = V_temp[H_INDEX];
-      if (tkeNeeded) enthalpy += GetTke_Inf();
+      //if (tkeNeeded) enthalpy += GetTke_Inf();
       V_infty[P_INDEX]=V_temp[P_INDEX];
       V_infty[RHO_INDEX]=V_temp[RHO_INDEX];
       V_infty[H_INDEX]=enthalpy;
       V_infty[A_INDEX]=V_temp[A_INDEX];
       V_infty[RHOCVTR_INDEX]=V_temp[RHOCVTR_INDEX];
       V_infty[RHOCVVE_INDEX]=V_temp[RHOCVVE_INDEX];
+      cout << "V INFTY------------------------"<<endl;
+      for (auto iVar=0; iVar<nPrimVar;iVar++)
+        cout <<V_infty[iVar]<<endl;
 
       /*--- Pass conserved & primitive variables to CNumerics ---*/
       conv_numerics->SetConservative(U_domain, U_infty);
@@ -1627,6 +1635,9 @@ void CNEMOEulerSolver::BC_Far_Field(CGeometry *geometry, CSolver **solver_contai
       /*--- Compute the convective residual (and Jacobian) ---*/
       // Note: This uses the specified boundary num. method specified in driver_structure.cpp
       auto residual = conv_numerics->ComputeResidual(config);
+      //cout << "FAR CONV RES----------: "<<endl;
+      //for (auto iVar=0; iVar<nVar; iVar++)
+      //`  cout << residual[iVar]<<endl;
 
       /*--- Apply contribution to the linear system ---*/
       LinSysRes.AddBlock(iPoint, residual);
@@ -1683,7 +1694,9 @@ void CNEMOEulerSolver::BC_Far_Field(CGeometry *geometry, CSolver **solver_contai
 
 	/*--- Compute and update residual ---*/
         auto residual = visc_numerics->ComputeResidual(config);
-
+        //cout << "FAR VISC RES-------------: "<<endl;
+        //for (auto iVar=0; iVar<nVar; iVar++)
+        //  cout << residual[iVar]<<endl;
         LinSysRes.SubtractBlock(iPoint, residual);
         if (implicit) {
           Jacobian.SubtractBlock2Diag(iPoint, residual.jacobian_i);
@@ -2487,6 +2500,9 @@ void CNEMOEulerSolver::BC_Supersonic_Outlet(CGeometry *geometry, CSolver **solve
 
       /*--- Allocate the value at the outlet ---*/
       V_outlet = GetCharacPrimVar(val_marker, iVertex);
+      //cout << "V DOMAIN------------------------"<<endl;
+      //for (auto iVar=0; iVar<nPrimVar;iVar++)
+      //  cout <<V_domain[iVar]<<endl;
       V_outlet = V_domain;
       U_outlet = U_domain;
 
@@ -2514,7 +2530,9 @@ void CNEMOEulerSolver::BC_Supersonic_Outlet(CGeometry *geometry, CSolver **solve
       /*--- Compute the residual using an upwind scheme ---*/
       auto residual = conv_numerics->ComputeResidual(config);
       LinSysRes.AddBlock(iPoint, residual);
-
+      //cout << "SUP CONV RES: "<<endl;
+      //for (auto iVar=0; iVar<nVar; iVar++)
+      //   cout << residual[iVar]<<endl;
       /*--- Jacobian contribution for implicit integration ---*/
       if (implicit)
         Jacobian.AddBlock2Diag(iPoint, residual.jacobian_i);

@@ -258,6 +258,10 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
   const auto& GV  = val_gradprimvar;
   RuSI= UNIVERSAL_GAS_CONSTANT;
   Ru  = 1000.0*RuSI;
+//  cout <<T<<endl;
+//  cout <<Tve<<endl;
+//  cout <<val_eve[0]<<endl;
+//  cout <<val_eve[1]<<endl;
 
   const auto& hs = fluidmodel->ComputeSpeciesEnthalpy(T, Tve, val_eve);
 

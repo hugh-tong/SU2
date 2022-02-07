@@ -163,9 +163,10 @@ CNumerics::ResidualType<> CAvgGrad_NEMO::ComputeResidual(const CConfig *config) 
 
 
   /*--- Update viscous residual ---*/
-  for (auto iVar = 0; iVar < nVar; iVar++)
+  for (auto iVar = 0; iVar < nVar; iVar++){
     Flux[iVar] = Proj_Flux_Tensor[iVar];
-
+//    cout <<"AVG GRAD: "<< Flux[iVar]<<endl;
+  }
   /*--- Compute the implicit part ---*/
   if (implicit) {
     dist_ij = 0.0;
@@ -339,9 +340,10 @@ CNumerics::ResidualType<> CAvgGradCorrected_NEMO::ComputeResidual(const CConfig 
                      config);
 
   /*--- Update viscous residual ---*/
-  for (auto iVar = 0; iVar < nVar; iVar++)
+  for (auto iVar = 0; iVar < nVar; iVar++){
     Flux[iVar] = Proj_Flux_Tensor[iVar];
-
+//    cout <<"CORREC: "<<Flux[iVar]<<endl;
+  }
   /*--- Compute the implicit part ---*/
   if (implicit) {
     dist_ij = sqrt(dist_ij_2);

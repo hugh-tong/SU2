@@ -75,7 +75,7 @@ CNEMONSVariable::CNEMONSVariable(su2double val_density, const su2double *val_mas
 bool CNEMONSVariable::SetPrimVar(unsigned long iPoint, su2double eddy_visc, su2double turb_ke, CFluidModel *FluidModel) {
 
   fluidmodel = static_cast<CNEMOGas*>(FluidModel);
-
+  //cout << "iPoint!!!!!!!!!!!!!!!!!"<<iPoint<<endl;
   /*--- Convert conserved to primitive variables ---*/
   bool nonPhys = Cons2PrimVar(Solution[iPoint], Primitive[iPoint], dPdU[iPoint], dTdU[iPoint], dTvedU[iPoint], eves[iPoint],
                               Cvves[iPoint], turb_ke);

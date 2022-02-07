@@ -677,7 +677,7 @@ void CNEMONSSolver::BC_IsothermalNonCatalytic_Wall(CGeometry *geometry,
     //Res_Visc[nSpecies+nDim+1] = (kve*(Tvei-Tvej) + kve*(Twall-Tvei) *C)*Area/dist_ij;
     
     Res_Visc[nSpecies+nDim] = (ktr*(Twall-Tj))*Area/dist_ij;
-    Res_Visc[nSpecies+nDim+1] = 0.0; //(kve*(Twall-Tvej))*Area/dist_ij;
+    Res_Visc[nSpecies+nDim+1] = (kve*(Twall-Tvej))*Area/dist_ij;
 
     /*--- Calculate Jacobian for implicit time stepping ---*/
     if (implicit) {
@@ -1069,6 +1069,9 @@ void CNEMONSSolver::BC_Smoluchowski_Maxwell(CGeometry *geometry,
     Res_Visc[nSpecies+nDim]   = ((ktr*(Ti-Tj)    + kve*(Tvei-Tvej)) +
                                  (ktr*(Tslip-Ti) + kve*(Tslip_ve-Tvei))*C)*Area/dij;
     Res_Visc[nSpecies+nDim+1] = (kve*(Tvei-Tvej) + kve*(Tslip_ve-Tvei)*C)*Area/dij;
+    cout << "SMOL"<<endl;
+    cout << Res_Visc[nSpecies+nDim]<<endl;
+    cout << Res_Visc[nSpecies+nDim+1]<<endl;
 
     LinSysRes.SubtractBlock(iPoint, Res_Visc);
   }

@@ -136,15 +136,18 @@ void CNSVariable::SetRoe_Dissipation_FD(unsigned long iPoint, su2double val_wall
 bool CNSVariable::SetPrimVar(unsigned long iPoint, su2double eddy_visc, su2double turb_ke, CFluidModel *FluidModel) {
 
   bool RightVol = true;
+  //cout << "iPoint!!!!!!!!!!!!!!!!!"<<iPoint<<endl;
 
   SetVelocity(iPoint); // Computes velocity and velocity^2
   su2double density      = GetDensity(iPoint);
   su2double staticEnergy = GetEnergy(iPoint)-0.5*Velocity2(iPoint) - turb_ke;
 
   /*--- Check will be moved inside fluid model plus error description strings ---*/
-
+  //cout <<"rhoE "<<density*GetEnergy(iPoint)<<endl;
   FluidModel->SetTDState_rhoe(density, staticEnergy);
-
+  //cout <<"rhoE "<<density*GetEnergy(iPoint)<<endl;
+  //cout <<"turb_ke "<<turb_ke<<endl;
+  //cout <<"T  "   <<FluidModel->GetTemperature()<<endl;
   bool check_dens  = SetDensity(iPoint);
   bool check_press = SetPressure(iPoint, FluidModel->GetPressure());
   bool check_sos   = SetSoundSpeed(iPoint, FluidModel->GetSoundSpeed2());
