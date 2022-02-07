@@ -541,10 +541,9 @@ void CFlowOutput::SetAnalyzeSurface(CSolver *solver, CGeometry *geometry, CConfi
     Tot_Momentum_Distortion += MomentumDistortion;
     config->SetSurface_MomentumDistortion(iMarker_Analyze, MomentumDistortion);
 
-    su2double DC60Distortion = Surface_DC60Distortion_Total[iMarker_Analyze];
+    su2double DC60Distortion = config->GetSurface_DC60Distortion(iMarker_Analyze);
     SetHistoryOutputPerSurfaceValue("DC60_DISTORTION", DC60Distortion, iMarker_Analyze);
     Tot_DC60_Distortion += DC60Distortion;
-    config->SetSurface_DC60Distortion(iMarker_Analyze, DC60Distortion);
 
     su2double SecondOverUniform = SecondaryStrength/Uniformity;
     SetHistoryOutputPerSurfaceValue("SECONDARY_OVER_UNIFORMITY", SecondOverUniform, iMarker_Analyze);
@@ -708,7 +707,6 @@ void CFlowOutput::SetAnalyzeSurface(CSolver *solver, CGeometry *geometry, CConfi
   delete [] Surface_Area_Total;
   delete [] Surface_MassFlow_Abs_Total;
   delete [] Surface_MomentumDistortion_Total;
-  delete [] Surface_DC60Distortion_Total;
 
   delete [] Surface_MassFlow;
   delete [] Surface_Mach;
@@ -982,11 +980,10 @@ void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *
   unsigned short iMarker, iDim, iMarker_Analyze;
   unsigned long iPoint, iVertex;
   su2double xCoord = 0.0, yCoord = 0.0, zCoord = 0.0, Area = 0.0, *Vector, TotalArea = 0.0;
-  su2double xCoord_CG = 0.0, yCoord_CG = 0.0, zCoord_CG = 0.0, TipRadius, HubRadius, Distance = 0.0, Distance_Mirror = 0.0;
+  su2double xCoord_CG = 0.0, yCoord_CG = 0.0, zCoord_CG = 0.0, TipRadius, HubRadius, Distance = 0.0;
   su2double *r, MinDistance, xCoord_ = 0.0, yCoord_ = 0.0, zCoord_ = 0;
   unsigned short iStation, iAngle, nAngle;
-  char cstr[200];
-  su2double *** ProbeArray, dx = 0.0, dy = 0.0, dz = 0.0, dx_ = 0.0, dy_ = 0.0, dz_ = 0.0, UpVector[3], radians, RotatedVector[3];
+  su2double *** ProbeArray, dx = 0.0, dy = 0.0, dz = 0.0, UpVector[3], radians, RotatedVector[3];
   su2double Pressure, SoundSpeed, Velocity2, Mach,  Gamma, TotalPressure, Mach_Inf, TotalPressure_Inf,
   Temperature, TotalTemperature, Pressure_Inf, Temperature_Inf, TotalTemperature_Inf, Velocity_Inf, Density;
   unsigned short nDim = geometry->GetnDim();
@@ -995,19 +992,10 @@ void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *
   unsigned long Buffer_Send_nVertex[1], *Buffer_Recv_nVertex = NULL;
   unsigned long Total_Index;
   unsigned short Theta_DC60 = 60, nStation_DC60 = 5;
-  su2double PT_Mean, Mach_Mean, q_Mean, PT, q, *PT_Sector, PT_Sector_Min, DC60, *PT_Station, *PT_Station_Min, *Mach_Station, *Mach_Station_Min, IDR, IDC, IDC_Mach;
-
-
-  su2double SignFlip = 1.0;
-  su2double Beta, Alpha;
-  su2double Mach_ij, Mach_ip1j, Mach_im1j, Mach_ijp1, Mach_ijm1, Filtered_Mach;
-  su2double Alpha_ij, Alpha_ip1j, Alpha_im1j, Alpha_ijp1, Alpha_ijm1, Filtered_Alpha;
-  su2double Beta_ij, Beta_ip1j, Beta_im1j, Beta_ijp1, Beta_ijm1, Filtered_Beta;
-  su2double a, b, c, d;
+  su2double PT_Mean, Mach_Mean, q_Mean, PT, q, *PT_Sector, PT_Sector_Min, DC60;
 
   int iProcessor, nProcessor;
   nProcessor = size;
-
 
   /*--- Loop over all the markers to analyze ---*/
 
@@ -1409,7 +1397,6 @@ void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *
       else DC60 = 0.0;
 
       config->SetSurface_DC60Distortion(iMarker_Analyze, DC60);
-
       solver->SetTotal_DC60(DC60);
 
       /*--- Deallocate the memory ---*/
@@ -1444,14 +1431,6 @@ void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *
       delete [] Buffer_Recv_Area;
 
       delete [] Buffer_Recv_nVertex;
-
-      delete[] r;
-      for (iAngle = 0; iAngle < nAngle; iAngle++) {
-        for (iStation = 0; iStation < nStation; iStation++) {
-          delete[] ProbeArray[iAngle][iStation];
-        }
-      }
-      delete[] ProbeArray;
 
     }
 
