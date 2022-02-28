@@ -157,7 +157,7 @@ CNEMOEulerSolver::CNEMOEulerSolver(CGeometry *geometry, CConfig *config,
   Energy_Inf         = config->GetEnergy_FreeStreamND();
   Energy_ve_Inf      = config->GetEnergy_ve_FreeStreamND();   
   Tke_Inf            = config->GetTke_FreeStreamND();
-  cout <<"TKE!!!!: "<<Tke_Inf<<endl;
+
   /*--- Initialize the secondary values for direct derivative approxiations ---*/
   switch(direct_diff) {
   case NO_DERIVATIVE:
@@ -1616,9 +1616,6 @@ void CNEMOEulerSolver::BC_Far_Field(CGeometry *geometry, CSolver **solver_contai
       V_infty[A_INDEX]=V_temp[A_INDEX];
       V_infty[RHOCVTR_INDEX]=V_temp[RHOCVTR_INDEX];
       V_infty[RHOCVVE_INDEX]=V_temp[RHOCVVE_INDEX];
-      cout << "V INFTY------------------------"<<endl;
-      for (auto iVar=0; iVar<nPrimVar;iVar++)
-        cout <<V_infty[iVar]<<endl;
 
       /*--- Pass conserved & primitive variables to CNumerics ---*/
       conv_numerics->SetConservative(U_domain, U_infty);

@@ -95,7 +95,6 @@ CNEMOEulerVariable::CNEMOEulerVariable(su2double density, const su2double *mass_
       Solution(iPoint, nSpecies+iDim) = density * velocity[iDim];
     Solution(iPoint, nVar-2) = density * energy;
     Solution(iPoint, nVar-1) = density * energy_ve;
-    cout <<"EVE in VAR: "<< Solution(iPoint,nVar-1)<<endl;
   }  
   Solution_Old = Solution;
 
