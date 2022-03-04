@@ -2011,7 +2011,7 @@ void CNEMOEulerSolver::BC_Outlet(CGeometry *geometry, CSolver **solver_container
   unsigned short iVar, iDim, iSpecies;
   unsigned long iVertex, iPoint;
   su2double Pressure, P_Exit, Velocity[3], Temperature, Tve, Velocity2, Entropy, Density,
-  Riemann, Vn, SoundSpeed, Mach_Exit, Vn_Exit, Area, UnitNormal[3];
+  Riemann, Vn, SoundSpeed, Mach_Exit, Vn_Exit, Area, UnitNormal[3], Tke;
   vector<su2double> rhos;
 
   rhos.resize(nSpecies,0.0);
@@ -2037,6 +2037,9 @@ void CNEMOEulerSolver::BC_Outlet(CGeometry *geometry, CSolver **solver_container
   unsigned short A_INDEX       = nodes->GetAIndex();
   unsigned short RHOCVTR_INDEX = nodes->GetRhoCvtrIndex();
   unsigned short RHOCVVE_INDEX = nodes->GetRhoCvveIndex();
+
+  CVariable* turbNodes = nullptr;
+  if (tkeNeeded) turbNodes = solver_container[TURB_SOL]->GetNodes();  
 
   /*--- Loop over all the vertices on this boundary marker ---*/
   for (iVertex = 0; iVertex < geometry->nVertex[val_marker]; iVertex++) {
@@ -2159,6 +2162,14 @@ void CNEMOEulerSolver::BC_Outlet(CGeometry *geometry, CSolver **solver_container
         auto& energies = FluidModel->ComputeMixtureEnergies();
         //if (tkeNeeded) energies[0] += GetTke_Inf();
         //TODO
+
+        //if (tkeNeeded) energies[0] += GetTke_Inf();
+        //TODO
+        if (tkeNeeded) {
+          Tke = turbNodes->GetSolution(iPoint,0);
+          energies[0] += Tke;
+        }        
+
         /*--- Conservative variables, using the derived quantities ---*/
         for (iSpecies = 0; iSpecies < nSpecies; iSpecies ++){
           U_outlet[iSpecies] = V_outlet[iSpecies];
