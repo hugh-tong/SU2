@@ -200,6 +200,17 @@ fi
 AM_CONDITIONAL(BUILD_CGNS, test x$enablecgns = xyes)
 AC_CONFIG_FILES([externals/cgns/Makefile])
 
+# MEL
+CONFIGURE_MEL
+if (test $enablemel = yes); then
+  su2_externals_INCLUDES="-DHAVE_MEL $MEL_INCLUDE $su2_externals_INCLUDES"
+  su2_externals_LIBS="$MEL_LIB $su2_externals_LIBS"
+else
+  su2_externals_INCLUDES="$su2_externals_INCLUDES"
+fi
+AM_CONDITIONAL(BUILD_MEL, test x$enablemel = xyes)
+AC_CONFIG_FILES([externals/mel/Makefile])
+
 AC_SUBST([su2_externals_INCLUDES])
 AC_SUBST([su2_externals_LIBS])
 AC_SUBST([su2_externals_LIBPTHREAD])
@@ -379,6 +390,7 @@ Build Configuration Summary:
     Parmetis support:     $enableparmetis
     TecIO support:        $enabletecio
     CGNS support:         $enablecgns
+    MEL support:          $enablemel
     Mutation++ support:   $have_MPP
     MKL support:          $have_MKL
     Datatype support:

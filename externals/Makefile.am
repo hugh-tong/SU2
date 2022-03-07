@@ -44,3 +44,9 @@ endif
 if BUILD_CGNS
   SUBDIRS += cgns
 endif
+
+if BUILD_MEL
+  SUBDIRS += mel
+endif
+
+

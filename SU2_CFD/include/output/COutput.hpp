@@ -47,7 +47,9 @@ inline su2double hypot(const su2double& a, const su2double& b) {
 }
 }
 }
+#ifdef HAVE_MEL
 #include "mel.hpp"
+#endif
 
 class CGeometry;
 class CSolver;
@@ -171,14 +173,18 @@ protected:
 
   /** \brief Struct to hold a parsed user-defined expression. */
   struct CustomHistoryOutput {
+    #ifdef HAVE_MEL
     mel::ExpressionTree<passivedouble> expression;
+    #endif
     /*--- Pointers to values in the history output maps, to avoid key lookup every time. ---*/
     std::vector<const su2double*> symbolValues;
     bool ready = false;
 
+    #ifdef HAVE_MEL
     su2double eval() const {
       return mel::Eval<su2double>(expression, [&](int i) {return *symbolValues[i];});
     }
+    #endif
   };
 
   CustomHistoryOutput customObjFunc;  /*!< \brief User-defined expression for a custom objective. */

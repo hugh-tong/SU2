@@ -264,7 +264,9 @@ void COutput::OutputScreenAndHistory(CConfig *config) {
 void COutput::SetupCustomHistoryOutput(const std::string& expression, CustomHistoryOutput& output) const {
 
   std::vector<std::string> symbols;
+  #ifdef HAVE_MEL
   output.expression = mel::Parse<passivedouble>(expression, symbols);
+  #endif
 
   auto ptrToSymbolValue = [&](const std::string& symbol) {
     /*--- Decide if it should be per surface. ---*/
@@ -304,7 +306,9 @@ void COutput::SetCustomAndComboObjectives(int idxSol, const CConfig *config, CSo
     if (!customObjFunc.ready) {
       SetupCustomHistoryOutput(config->GetCustomObjFunc(), customObjFunc);
     }
+    #ifdef HAVE_MEL
     solver[idxSol]->SetTotal_Custom_ObjFunc(customObjFunc.eval());
+    #endif
   }
   solver[idxSol]->Evaluate_ObjFunc(config, solver);
   SetHistoryOutputValue("COMBO", solver[idxSol]->GetTotal_ComboObj());

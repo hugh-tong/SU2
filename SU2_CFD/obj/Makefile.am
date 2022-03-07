@@ -113,6 +113,7 @@ libSU2Core_sources = ../src/definition_structure.cpp \
   ../src/numerics/elasticity/CFEALinearElasticity.cpp \
   ../src/numerics/elasticity/CFEANonlinearElasticity.cpp \
   ../src/numerics/elasticity/nonlinear_models.cpp \
+  ../src/numerics/CGradSmoothing.cpp \
   ../include/numerics_simd/CNumericsSIMD.cpp \
   ../src/output/filewriter/CCSVFileWriter.cpp \
   ../src/output/filewriter/CSTLFileWriter.cpp \
@@ -183,6 +184,8 @@ libSU2Core_sources = ../src/definition_structure.cpp \
   ../src/solvers/CTurbSASolver.cpp \
   ../src/solvers/CTurbSSTSolver.cpp \
   ../src/solvers/CSolverFactory.cpp \
+  ../src/solvers/CFEASolverBase.cpp \
+  ../src/solvers/CGradientSmoothingSolver.cpp \
   ../src/limiters/CLimiterDetails.cpp \
   ../src/CMarkerProfileReaderFVM.cpp \
   ../src/interfaces/CInterface.cpp \
@@ -221,7 +224,12 @@ libSU2Core_sources = ../src/definition_structure.cpp \
   ../src/variables/CDiscAdjVariable.cpp \
   ../src/variables/CIncNSVariable.cpp \
   ../src/variables/CEulerVariable.cpp \
-  ../src/variables/CFlowVariable.cpp
+  ../src/variables/CFlowVariable.cpp \
+  ../src/variables/CSobolevSmoothingVariable.cpp \
+  ../../Common/src/geometry/elements/CLINE.cpp \
+  ../../Common/src/geometry/elements/CTETRA4.cpp \
+  ../../Common/src/geometry/elements/CPYRAM6.cpp \
+  ../../Common/src/geometry/elements/CTRIA3.cpp 
 
 su2_cfd_sources = \
   ../src/SU2_CFD.cpp

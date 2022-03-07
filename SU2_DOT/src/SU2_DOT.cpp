@@ -27,6 +27,8 @@
 
 
 #include "../include/SU2_DOT.hpp"
+#include "../../SU2_CFD/include/numerics/CGradSmoothing.hpp"
+#include "../../SU2_CFD/include/solvers/CGradientSmoothingSolver.hpp"
 using namespace std;
 
 int main(int argc, char *argv[]) {
