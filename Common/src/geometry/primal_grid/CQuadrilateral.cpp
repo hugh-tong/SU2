@@ -34,7 +34,7 @@ constexpr unsigned short CQuadrilateralConnectivity::nNeighbor_Nodes[4];
 constexpr unsigned short CQuadrilateralConnectivity::Neighbor_Nodes[4][2];
 
 CQuadrilateral::CQuadrilateral(unsigned long val_point_0, unsigned long val_point_1,
-             unsigned long val_point_2, unsigned long val_point_3):
+             unsigned long val_point_2, unsigned long val_point_3, unsigned short val_nDim):
   CPrimalGridWithConnectivity<CQuadrilateralConnectivity>(false)
 {
   /*--- Define face structure of the element ---*/
@@ -42,8 +42,32 @@ CQuadrilateral::CQuadrilateral(unsigned long val_point_0, unsigned long val_poin
   Nodes[1] = val_point_1;
   Nodes[2] = val_point_2;
   Nodes[3] = val_point_3;
+
+  unsigned short nFaces = val_nDim;  
+
+  unsigned short iDim, iFace, iNeighbor_Elements;
+
+  /*--- Allocate CG coordinates ---*/
+  nDim = val_nDim;
+
+  Coord_FaceElems_CG = new su2double* [nFaces];
+  for (iFace = 0; iFace < nFaces; iFace++) {
+    Coord_FaceElems_CG[iFace] = new su2double [nDim];
+    for (iDim = 0; iDim < nDim; iDim++)
+      Coord_FaceElems_CG[iFace][iDim] = 0.0;
+  }
 }
 
 void CQuadrilateral::Change_Orientation() {
   std::swap(Nodes[1], Nodes[3]);
+}
+
+CQuadrilateral::~CQuadrilateral() {
+  unsigned short iFaces;
+  unsigned short nFaces = 4;
+
+  for (iFaces = 0; iFaces < nFaces; iFaces++)
+    if (Coord_FaceElems_CG[iFaces] != nullptr) delete[] Coord_FaceElems_CG[iFaces];
+  delete[] Coord_FaceElems_CG;
+
 }

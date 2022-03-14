@@ -63,6 +63,11 @@ public:
                unsigned long val_point_2, unsigned long val_point_3);
 
   /*!
+   * \brief Destructor of the class.
+   */
+  ~CTetrahedron(void) override;  
+
+  /*!
    * \brief Change the orientation of an element.
    */
   void Change_Orientation() override;

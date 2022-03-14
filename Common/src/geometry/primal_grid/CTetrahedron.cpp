@@ -42,8 +42,31 @@ CTetrahedron::CTetrahedron(unsigned long val_point_0, unsigned long val_point_1,
   Nodes[1] = val_point_1;
   Nodes[2] = val_point_2;
   Nodes[3] = val_point_3;
+
+  unsigned short iDim, iFace, iNeighbor_Elements;
+  unsigned short nFaces = 4;
+  /*--- Allocate CG coordinates ---*/
+  nDim = 3;
+
+  Coord_FaceElems_CG = new su2double* [nFaces];
+  for (iFace = 0; iFace < nFaces; iFace++) {
+    Coord_FaceElems_CG[iFace] = new su2double [nDim];
+    for (iDim = 0; iDim < nDim; iDim++)
+      Coord_FaceElems_CG[iFace][iDim] = 0.0;
+  }
+
 }
 
 void CTetrahedron::Change_Orientation() {
   std::swap(Nodes[0],Nodes[1]);
+}
+
+CTetrahedron::~CTetrahedron() {
+  unsigned short iFaces;
+  unsigned short nFaces = 4;
+
+  for (iFaces = 0; iFaces < nFaces; iFaces++)
+    if (Coord_FaceElems_CG[iFaces] != nullptr) delete[] Coord_FaceElems_CG[iFaces];
+  delete[] Coord_FaceElems_CG;
+
 }

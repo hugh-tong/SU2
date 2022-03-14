@@ -1182,6 +1182,10 @@ private:
   *Wall_Catalytic;                          /*!< \brief Pointer to catalytic walls. */
   TRANSCOEFFMODEL   Kind_TransCoeffModel;   /*!< \brief Transport coefficient Model for NEMO solver. */
 
+  bool interpolate_solution;                /*!< \brief Flag for solution interpolation */
+  string   Target_Mesh_FileName,           /*!< \brief Mesh name to be adapted. */
+  Interpolated_Restart_FileName;           /*!< \brief Name of interpolated restart file. */  
+
   /*--- Additional species solver options ---*/
   bool Species_Clipping;           /*!< \brief Boolean that activates solution clipping for scalar transport. */
   su2double* Species_Clipping_Max; /*!< \brief Maximum value of clipping for scalar transport. */
@@ -1352,6 +1356,11 @@ public:
    * \brief Constructor of the class which reads the input file.
    */
   CConfig(char case_filename[MAX_STRING_SIZE], CConfig *config);
+
+  /*!
+   * \brief Constructor of the class which reads the input file.
+   */
+  CConfig(char case_filename[MAX_STRING_SIZE], SU2_COMPONENT val_software, unsigned short val_iZone, unsigned short val_nZone, unsigned short val_nDim, bool verb_high);    
 
   /*!
    * \brief Destructor of the class.
@@ -5301,6 +5310,27 @@ public:
    * \return Restart information, if <code>TRUE</code> then the code will use the solution as restart.
    */
   bool GetRestart(void) const { return Restart; }
+
+  /*!
+   * \brief Sets the restart information.
+   */
+  void SetRestart(bool val_restart) { Restart = val_restart; }
+
+  /*!
+   * \brief Sets the mesh filename for interpolation.
+   */
+  void SetMesh_FileName(string val_filename) { Mesh_FileName = val_filename; }
+
+  /*!
+   * \brief Get the interpolation target mesh name.
+   * \return Mesh filename to be interpolated.
+   */
+  string GetTarget_Mesh_FileName(void) { return Target_Mesh_FileName; }
+
+  /*!
+   * \brief Indicates if solution interpolation will be used.
+   */
+  bool GetSolutionInterpolation(void) const { return interpolate_solution; }
 
   /*!
    * \brief Flag for whether binary SU2 native restart files are read.

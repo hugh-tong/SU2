@@ -36,6 +36,7 @@ CEdge::CEdge(unsigned long nEdge, unsigned long nDim) {
   const auto nEdgeSIMD = nextMultiple(nEdge, simd::preferredLen<su2double>());
   Nodes.resize(nEdgeSIMD,2) = 0;
   Normal.resize(nEdgeSIMD,nDim) = su2double(0.0);
+  Coord_CG.resize(nEdgeSIMD,nDim) = su2double(0.0);
 }
 
 void CEdge::SetZeroValues(void) {

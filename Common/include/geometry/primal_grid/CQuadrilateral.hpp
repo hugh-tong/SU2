@@ -60,7 +60,12 @@ public:
    * \param[in] val_point_3 - Index of the 4th point read from the grid file.
    */
   CQuadrilateral(unsigned long val_point_0, unsigned long val_point_1,
-                 unsigned long val_point_2, unsigned long val_point_3);
+                 unsigned long val_point_2, unsigned long val_point_3, unsigned short val_nDim);
+
+  /*!
+   * \brief Destructor of the class.
+   */
+  ~CQuadrilateral(void) override;  
 
   /*!
    * \brief Change the orientation of an element.

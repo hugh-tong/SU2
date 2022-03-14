@@ -69,6 +69,11 @@ public:
               unsigned long val_point_6, unsigned long val_point_7);
 
   /*!
+   * \brief Destructor of the class.
+   */
+  ~CHexahedron(void) override;  
+
+  /*!
    * \brief Change the orientation of an element.
    */
   void Change_Orientation() override;

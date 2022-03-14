@@ -253,6 +253,44 @@ CConfig::CConfig(char case_filename[MAX_STRING_SIZE], CConfig *config) {
   }
 }
 
+CConfig::CConfig(char case_filename[MAX_STRING_SIZE], SU2_COMPONENT val_software, unsigned short val_iZone, unsigned short val_nZone, unsigned short val_nDim, bool verb_high) {
+
+  caseName = PrintingToolbox::split(string(case_filename),'.')[0];
+
+  base_config = false;
+
+  iZone = val_iZone;
+  nZone = val_nZone;
+
+  Init();
+
+  /*--- Parsing the config file  ---*/
+
+  SetConfig_Parsing(case_filename);
+
+  /*--- Set the default values for all of the options that weren't set ---*/
+
+  SetDefault();
+
+  /*--- Set number of zone ---*/
+
+  SetnZone();
+
+  /*--- Configuration file postprocessing ---*/
+
+  SetPostprocessing(val_software, val_iZone, val_nDim);
+
+  /*--- Configuration file boundaries/markers setting ---*/
+
+  SetMarkers(val_software);
+
+  /*--- Configuration file output ---*/
+
+  if ((rank == MASTER_NODE) && verb_high)
+    SetOutput(val_software, val_iZone);
+
+}
+
 SU2_MPI::Comm CConfig::GetMPICommunicator() const {
 
   return SU2_Communicator;
@@ -2881,6 +2919,15 @@ void CConfig::SetConfig_Options() {
   /*!\brief ROM_SAVE_FREQ \n DESCRIPTION: How often to save snapshots for unsteady problems.*/
   addUnsignedShortOption("ROM_SAVE_FREQ", rom_save_freq, 1);
 
+  /* DESCRIPTION: Interpolating solutions between two meshes */
+  addBoolOption("INTERPOLATE_SOLUTION", interpolate_solution, false);
+
+  /* DESCRIPTION: Interpolated output file restart flow */
+  addStringOption("INTERPOLATED_RESTART_FILENAME", Interpolated_Restart_FileName, string("interpolated_restart_flow.dat"));
+
+  /* DESCRIPTION: Target mesh for solution interpolation */
+  addStringOption("TARGET_MESH_FILENAME", Target_Mesh_FileName, string("target_mesh.su2"));  
+
   /* END_CONFIG_OPTIONS */
 
 }
@@ -3198,11 +3245,12 @@ void CConfig::SetHeader(SU2_COMPONENT val_software) const{
     cout << "|   / __| | | |_  )   Release 7.3.0 \"Blackbird\"                         |" << endl;
     cout << "|   \\__ \\ |_| |/ /                                                      |" << endl;
     switch (val_software) {
-    case SU2_COMPONENT::SU2_CFD: cout << "|   |___/\\___//___|   Suite (Computational Fluid Dynamics Code)         |" << endl; break;
-    case SU2_COMPONENT::SU2_DEF: cout << "|   |___/\\___//___|   Suite (Mesh Deformation Code)                     |" << endl; break;
-    case SU2_COMPONENT::SU2_DOT: cout << "|   |___/\\___//___|   Suite (Gradient Projection Code)                  |" << endl; break;
-    case SU2_COMPONENT::SU2_GEO: cout << "|   |___/\\___//___|   Suite (Geometry Definition Code)                  |" << endl; break;
-    case SU2_COMPONENT::SU2_SOL: cout << "|   |___/\\___//___|   Suite (Solution Exporting Code)                   |" << endl; break;
+    case SU2_COMPONENT::SU2_CFD:    cout << "|   |___/\\___//___|   Suite (Computational Fluid Dynamics Code)         |" << endl; break;
+    case SU2_COMPONENT::SU2_DEF:    cout << "|   |___/\\___//___|   Suite (Mesh Deformation Code)                     |" << endl; break;
+    case SU2_COMPONENT::SU2_DOT:    cout << "|   |___/\\___//___|   Suite (Gradient Projection Code)                  |" << endl; break;
+    case SU2_COMPONENT::SU2_GEO:    cout << "|   |___/\\___//___|   Suite (Geometry Definition Code)                  |" << endl; break;
+    case SU2_COMPONENT::SU2_SOL:    cout << "|   |___/\\___//___|   Suite (Solution Exporting Code)                   |" << endl; break;
+    case SU2_COMPONENT::SU2_INTERP: cout << "|   |___/\\___//___|   Suite (Solution Interpolation Code)               |" << endl; break;
     }
 
     cout << "|                                                                       |" << endl;

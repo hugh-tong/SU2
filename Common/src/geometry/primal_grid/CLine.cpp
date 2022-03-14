@@ -33,11 +33,34 @@ constexpr unsigned short CLineConnectivity::Faces[1][2];
 constexpr unsigned short CLineConnectivity::nNeighbor_Nodes[2];
 constexpr unsigned short CLineConnectivity::Neighbor_Nodes[2][1];
 
-
-CLine::CLine(unsigned long val_point_0, unsigned long val_point_1):
+CLine::CLine(unsigned long val_point_0, unsigned long val_point_1, unsigned short val_nDim):
   CPrimalGridWithConnectivity<CLineConnectivity>(false)
 {
   /*--- Define face structure of the element ---*/
   Nodes[0] = val_point_0;
   Nodes[1] = val_point_1;
+
+  unsigned short iDim, iFace;
+  unsigned short nFaces = 1;
+
+  /*--- Allocate CG coordinates ---*/
+
+  nDim = val_nDim;
+
+  Coord_FaceElems_CG = new su2double* [nFaces];
+  for (iFace = 0; iFace < nFaces; iFace++) {
+    Coord_FaceElems_CG[iFace] = new su2double [nDim];
+    for (iDim = 0; iDim < nDim; iDim++)
+      Coord_FaceElems_CG[iFace][iDim] = 0.0;
+  }  
+}
+
+CLine::~CLine() {
+  unsigned short iFaces;
+  unsigned short nFaces = 1;
+
+  for (iFaces = 0; iFaces < nFaces; iFaces++)
+    if (Coord_FaceElems_CG[iFaces] != nullptr) delete[] Coord_FaceElems_CG[iFaces];
+  delete[] Coord_FaceElems_CG;
+
 }
