@@ -64,10 +64,6 @@ protected:
   bool ElementOwnsFace[N_FACES_MAXIMUM];    /*!< \brief Whether or not the element owns each face. */
   const bool FEM;                           /*!< \brief Whether this is a FEM element. */
 
-  su2double **Coord_FaceElems_CG;  /*!< \brief Coordinates of the center-of-gravity of the face of the elements. */
-  static unsigned short nDim;    /*!< \brief Dimension of the element (2D or 3D) useful for triangles,
-                                               quadrilateral and edges. */  
-
 public:
   CPrimalGrid() = delete;
 
@@ -187,12 +183,6 @@ public:
   inline void SetJacobianConstantFace(bool val_JacFaceIsConstant, unsigned short val_face) {
     JacobianFaceIsConstant[val_face] = val_JacFaceIsConstant;
   }
-
-  /*!
-   * \brief Set the center of gravity of an element (including edges).
-   * \param[in] val_coord - Coordinates of the element.
-   */
-  void SetCoord_CG(const su2double* const* val_coord);  
 
   /*!
    * \brief Set the center of gravity of an element (including edges).

@@ -42,21 +42,6 @@ CADTElemClass::CADTElemClass(unsigned short         val_nDim,
                              vector<unsigned long>  &val_elemID,
                              const bool             globalTree) {
 
-
-  /* Call CreateADT to do the actual work. */
-CreateADT(val_nDim, val_coor, val_connElem, val_VTKElem,
-            val_markerID, val_elemID, globalTree);
-}
-
-void CADTElemClass::CreateADT(unsigned short              val_nDim,
-                              vector<su2double>      &val_coor,
-                              vector<unsigned long>  &val_connElem,
-                              vector<unsigned short> &val_VTKElem,
-                              vector<unsigned short> &val_markerID,
-                              vector<unsigned long>  &val_elemID,
-                              const bool             globalTree ) {
-
-
   /* Copy the dimension of the problem into nDim. */
   nDim = val_nDim;
 
@@ -90,14 +75,14 @@ void CADTElemClass::CreateADT(unsigned short              val_nDim,
     /*--- First determine the number of points per rank and make them
           available to all ranks. ---*/
     int rank, size;
-    SU2_MPI::Comm_rank(MPI_COMM_WORLD, &rank);
-    SU2_MPI::Comm_size(MPI_COMM_WORLD, &size);
+    SU2_MPI::Comm_rank(SU2_MPI::GetComm(), &rank);
+    SU2_MPI::Comm_size(SU2_MPI::GetComm(), &size);
 
     vector<int> recvCounts(size), displs(size);
     int sizeLocal = (int) val_coor.size();
 
     SU2_MPI::Allgather(&sizeLocal, 1, MPI_INT, recvCounts.data(), 1,
-                       MPI_INT, MPI_COMM_WORLD);
+                       MPI_INT, SU2_MPI::GetComm());
     displs[0] = 0;
     for(int i=1; i<size; ++i) displs[i] = displs[i-1] + recvCounts[i-1];
 
@@ -113,14 +98,14 @@ void CADTElemClass::CreateADT(unsigned short              val_nDim,
 
     coorPoints.resize(sizeGlobal);
     SU2_MPI::Allgatherv(val_coor.data(), sizeLocal, MPI_DOUBLE, coorPoints.data(),
-                        recvCounts.data(), displs.data(), MPI_DOUBLE, MPI_COMM_WORLD);
+                        recvCounts.data(), displs.data(), MPI_DOUBLE, SU2_MPI::GetComm());
 
     /*--- Determine the number of elements per rank and make them
           available to all ranks. ---*/
     sizeLocal = (int) val_VTKElem.size();
 
     SU2_MPI::Allgather(&sizeLocal, 1, MPI_INT, recvCounts.data(), 1,
-                       MPI_INT, MPI_COMM_WORLD);
+                       MPI_INT, SU2_MPI::GetComm());
     displs[0] = 0;
     for(int i=1; i<size; ++i) displs[i] = displs[i-1] + recvCounts[i-1];
 
@@ -133,13 +118,13 @@ void CADTElemClass::CreateADT(unsigned short              val_nDim,
     localElemIDs.resize(sizeGlobal);
 
     SU2_MPI::Allgatherv(val_VTKElem.data(), sizeLocal, MPI_UNSIGNED_SHORT, elemVTK_Type.data(),
-                        recvCounts.data(), displs.data(), MPI_UNSIGNED_SHORT, MPI_COMM_WORLD);
+                        recvCounts.data(), displs.data(), MPI_UNSIGNED_SHORT, SU2_MPI::GetComm());
 
     SU2_MPI::Allgatherv(val_markerID.data(), sizeLocal, MPI_UNSIGNED_SHORT, localMarkers.data(),
-                        recvCounts.data(), displs.data(), MPI_UNSIGNED_SHORT, MPI_COMM_WORLD);
+                        recvCounts.data(), displs.data(), MPI_UNSIGNED_SHORT, SU2_MPI::GetComm());
 
     SU2_MPI::Allgatherv(val_elemID.data(), sizeLocal, MPI_UNSIGNED_LONG, localElemIDs.data(),
-                        recvCounts.data(), displs.data(), MPI_UNSIGNED_LONG, MPI_COMM_WORLD);
+                        recvCounts.data(), displs.data(), MPI_UNSIGNED_LONG, SU2_MPI::GetComm());
 
     /*--- Create the content of ranksOfElems, which stores the original ranks
           where the elements come from. ---*/
@@ -155,7 +140,7 @@ void CADTElemClass::CreateADT(unsigned short              val_nDim,
     sizeLocal = (int) val_connElem.size();
 
     SU2_MPI::Allgather(&sizeLocal, 1, MPI_INT, recvCounts.data(), 1,
-                       MPI_INT, MPI_COMM_WORLD);
+                       MPI_INT, SU2_MPI::GetComm());
     displs[0] = 0;
     for(int i=1; i<size; ++i) displs[i] = displs[i-1] + recvCounts[i-1];
 
@@ -165,14 +150,14 @@ void CADTElemClass::CreateADT(unsigned short              val_nDim,
     elemConns.resize(sizeGlobal);
 
     SU2_MPI::Allgatherv(val_connElem.data(), sizeLocal, MPI_UNSIGNED_LONG, elemConns.data(),
-                        recvCounts.data(), displs.data(), MPI_UNSIGNED_LONG, MPI_COMM_WORLD);
+                        recvCounts.data(), displs.data(), MPI_UNSIGNED_LONG, SU2_MPI::GetComm());
   }
     else {
 
     /*--- A local tree must be built. Copy the data from the arguments into the
           member variables and set the ranks to the rank of this processor. ---*/
     int rank;
-    SU2_MPI::Comm_rank(MPI_COMM_WORLD, &rank);
+    SU2_MPI::Comm_rank(SU2_MPI::GetComm(), &rank);
 
     coorPoints   = val_coor;
     elemConns    = val_connElem;
@@ -372,8 +357,7 @@ void CADTElemClass::DetermineNearestElement_impl(vector<CBBoxTargetClass>& BBoxT
                                                  su2double       &dist,
                                                  unsigned short  &markerID,
                                                  unsigned long   &elemID,
-                                                 int             &rankID,
-                                                 su2double       *weightsInterpol) const {
+                                                 int             &rankID) const {
 
   const bool wasActive = AD::BeginPassive();
 
@@ -386,8 +370,6 @@ void CADTElemClass::DetermineNearestElement_impl(vector<CBBoxTargetClass>& BBoxT
   const su2double *coorBBMin = BBoxCoor.data() + nDimADT*kk;
   const su2double *coorBBMax = coorBBMin + nDim;
   unsigned long jj = 0;
-  su2double weights[8];
-  unsigned short nInterpol;
 
   dist = 0.0;
   su2double ds;
@@ -530,9 +512,8 @@ void CADTElemClass::DetermineNearestElement_impl(vector<CBBoxTargetClass>& BBoxT
     const unsigned long ii = BBoxTargets[i].boundingBoxID;
 
     su2double dist2Elem;
-    Dist2ToElement(ii, coor, dist2Elem, nInterpol, weights);
+    Dist2ToElement(ii, coor, dist2Elem);
     if(dist2Elem <= dist) {
-      std::memcpy(weightsInterpol, weights, nInterpol*sizeof(su2double));
       jj       = ii;
       dist     = dist2Elem;
       markerID = localMarkers[ii];
@@ -545,7 +526,7 @@ void CADTElemClass::DetermineNearestElement_impl(vector<CBBoxTargetClass>& BBoxT
 
   /* At the moment the square of the distance is stored in dist. Compute
      the correct value. */
-  Dist2ToElement(jj, coor, dist, nInterpol, weights);
+  Dist2ToElement(jj, coor, dist);
   dist = sqrt(dist);
 }
 
@@ -2176,452 +2157,5 @@ bool CADTElemClass::Dist2ToQuadrilateral(const unsigned long i0,
     dist2Quad += ds*ds;
   }
 
-  return true;
-}
-
-void CADTElemClass::Dist2ToElement(const unsigned long elemID,
-                                   const su2double     *coor,
-                                   su2double           &dist2Elem,
-                                   unsigned short      &nInterpol,
-                                   su2double           *weightsInterpol) const {
-
-  /*--- Make a distinction between the element types. ---*/
-  switch( elemVTK_Type[elemID] ) {
-
-    case LINE: {
-
-      /*--- Element is a line. The number of space dimensions can be either
-            1, 2 or 3. Store the indices where the coordinates of the vertices
-            are stored in i0 and i1. ---*/
-      unsigned long i0 = nDOFsPerElem[elemID];
-      unsigned long i1 = i0 + 1;
-      i0 = nDim*elemConns[i0]; i1 = nDim*elemConns[i1];
-
-      /*--- Call the function Dist2ToLine to do the actual work and
-            set nInterpol to 2. ---*/
-      Dist2ToLine(i0, i1, coor, dist2Elem, weightsInterpol);
-      nInterpol = 2;
-
-      break;
-    }
-
-    /*------------------------------------------------------------------------*/
-
-    case TRIANGLE: {
-
-      /*--- Element is a triangle. The number of space dimensions can be either
-            2 or 3. Store the indices where the coordinates of the vertices
-            are stored in i0, i1 and i2. ---*/
-      unsigned long i0 = nDOFsPerElem[elemID];
-      unsigned long i1 = i0 + 1, i2 = i0 + 2;
-      i0 = nDim*elemConns[i0]; i1 = nDim*elemConns[i1]; i2 = nDim*elemConns[i2];
-
-      /*--- Set nInterpol to 3. ---*/
-      nInterpol = 3;
-
-      /*--- Call the function Dist2ToTriangle to compute the distance to the
-            triangle if the projection is inside the triangle. In that case the
-            function returns true. If the projection is not inside the triangle,
-            false is returned and the distance to each of the lines of the
-            triangle is computed and the minimum is taken. ---*/
-      su2double r, s;
-      if( !Dist2ToTriangle(i0, i1, i2, coor, dist2Elem, r, s, weightsInterpol) ) {
-        Dist2ToLine(i0, i1, coor, dist2Elem, weightsInterpol);
-        weightsInterpol[2] = 0.0;
-
-        su2double dist2Line, weightsLine[2];
-        Dist2ToLine(i1, i2, coor, dist2Line, weightsLine);
-        if(dist2Line < dist2Elem) {
-          dist2Elem = dist2Line;
-          weightsInterpol[0] = 0.0;
-          weightsInterpol[1] = weightsLine[0];
-          weightsInterpol[2] = weightsLine[1];
-        }
-
-        Dist2ToLine(i2, i0, coor, dist2Line, weightsLine);
-        if(dist2Line < dist2Elem) {
-          dist2Elem = dist2Line;
-          weightsInterpol[0] = weightsLine[1];
-          weightsInterpol[1] = 0.0;
-          weightsInterpol[2] = weightsLine[0];
-        }
-      }
-
-      break;
-    }
-
-    /*------------------------------------------------------------------------*/
-
-    case QUADRILATERAL: {
-
-      /*--- Element is a quadrilateral. The number of space dimensions can be
-            either 2 or 3. Store the indices where the coordinates of the
-            vertices are stored in i0, i1, i2 and i3. ---*/
-      unsigned long i0 = nDOFsPerElem[elemID];
-      unsigned long i1 = i0 + 1, i2 = i0 + 2, i3 = i0 + 3;
-      i0 = nDim*elemConns[i0]; i1 = nDim*elemConns[i1];
-      i2 = nDim*elemConns[i2]; i3 = nDim*elemConns[i3];
-
-      /*--- Set nInterpol to 4. ---*/
-      nInterpol = 4;
-
-      /*--- Call the function Dist2ToQuadrilateral to compute the distance to the
-            quadrilateral if the projection is inside the quadrilateral. In that
-            case the function returns true. If the projection is not inside the
-            quadrilateral, false is returned and the distance to each of the lines
-            of the quadrilateral is computed and the minimum is taken. ---*/
-      su2double r, s;
-      if( !Dist2ToQuadrilateral(i0, i1, i2, i3, coor, r, s, dist2Elem,
-                                weightsInterpol) ) {
-
-        /* The projection is outside the quadrilatral. Hence it suffices
-           to check the distance to the surrounding lines of the quad. */
-        Dist2ToLine(i0, i1, coor, dist2Elem, weightsInterpol);
-        weightsInterpol[2] = weightsInterpol[3] = 0.0;
-
-        su2double dist2Line, weightsLine[2];
-        Dist2ToLine(i1, i2, coor, dist2Line, weightsLine);
-        if(dist2Line < dist2Elem) {
-          dist2Elem = dist2Line;
-          weightsInterpol[0] = weightsInterpol[3] = 0.0;
-          weightsInterpol[1] = weightsLine[0];
-          weightsInterpol[2] = weightsLine[1];
-        }
-
-        Dist2ToLine(i2, i3, coor, dist2Line, weightsLine);
-        if(dist2Line < dist2Elem) {
-          dist2Elem = dist2Line;
-          weightsInterpol[0] = weightsInterpol[1] = 0.0;
-          weightsInterpol[2] = weightsLine[0];
-          weightsInterpol[3] = weightsLine[1];
-        }
-
-        Dist2ToLine(i3, i0, coor, dist2Line, weightsLine);
-        if(dist2Line < dist2Elem) {
-          dist2Elem = dist2Line;
-          weightsInterpol[1] = weightsInterpol[2] = 0.0;
-          weightsInterpol[3] = weightsLine[0];
-          weightsInterpol[0] = weightsLine[1];
-        }
-      }
-
-      break;
-    }
-
-    /*------------------------------------------------------------------------*/
-
-    case TETRAHEDRON:
-    case PYRAMID:
-    case PRISM:
-    case HEXAHEDRON: {
-      SU2_MPI::Error("3D elements not implemented yet", CURRENT_FUNCTION);
-    }
-  }
-}
-
-void CADTElemClass::Dist2ToLine(const unsigned long i0,
-                                const unsigned long i1,
-                                const su2double     *coor,
-                                su2double           &dist2Line,
-                                su2double           *weightsInterpol) const {
-
-  /*--- The line is parametrized by X = X0 + (r+1)*(X1-X0)/2, -1 <= r <= 1.
-        As a consequence the minimum distance is found where the expression
-        |V0 - r*V1| has a minimum, where the vectors V0 and V1 are defined
-        as: V0 = coor - (X1+X0)/2, V1 = (X1-X0)/2. First construct the
-        vectors V0 and V1. ---*/
-  su2double V0[3], V1[3];
-  for(unsigned short k=0; k<nDim; ++k) {
-    V0[k] = coor[k] - 0.5*(coorPoints[i1+k] + coorPoints[i0+k]);
-    V1[k] =           0.5*(coorPoints[i1+k] - coorPoints[i0+k]);
-  }
-
-  /*--- Determine the value of r, for which the minimum occurs. This is the
-        ratio of the dot product of V0.V1 and V1.V1. Make sure that r is
-        limited between -1 and 1 to make sure that the projection is inside
-        the line element. ---*/
-  su2double dotV0V1 = 0.0, dotV1V1 = 0.0;
-  for(unsigned short k=0; k<nDim; ++k) {
-    dotV0V1 += V0[k]*V1[k];
-    dotV1V1 += V1[k]*V1[k];
-  }
-  su2double r = dotV0V1/dotV1V1;
-  r = max(-1.0,min(1.0,r));
-
-  /*--- Determine the minimum distance squared. ---*/
-  dist2Line = 0.0;
-  for(unsigned short k=0; k<nDim; ++k) {
-    const su2double ds = V0[k] - r*V1[k];
-    dist2Line += ds*ds;
-  }
-
-  /*--- Determine the interpolation weights. */
-  weightsInterpol[0] = 0.5*(1.0-r);
-  weightsInterpol[1] = 0.5*(1.0+r);
-}
-
-bool CADTElemClass::Dist2ToTriangle(const unsigned long i0,
-                                    const unsigned long i1,
-                                    const unsigned long i2,
-                                    const su2double     *coor,
-                                    su2double           &dist2Tria,
-                                    su2double           &r,
-                                    su2double           &s,
-                                    su2double           *weightsInterpol) const {
-
-  constexpr unsigned short nDim = 3; // boundary triangles only exist in 3D
-
-  /*--- The triangle is parametrized by X = X0 + (r+1)*(X1-X0)/2 + (s+1)*(X2-X0)/2,
-        r, s >= -1, r+s <= 0. As a consequence the minimum distance is found where
-        the expression |V0 - r*V1 - s*V2| has a minimum, where the vectors V0, V1
-        and V2 are defined as: V0 = coor - (X1+X2)/2, V1 = (X1-X0)/2, V2 = (X2-X0)/2.
-        First construct the vectors V0, V1 and V2. ---*/
-  su2double V0[3], V1[3], V2[3];
-  for(unsigned short k=0; k<nDim; ++k) {
-    V0[k] = coor[k] - 0.5*(coorPoints[i1+k] + coorPoints[i2+k]);
-    V1[k] =           0.5*(coorPoints[i1+k] - coorPoints[i0+k]);
-    V2[k] =           0.5*(coorPoints[i2+k] - coorPoints[i0+k]);
-  }
-
-  /*--- For the values of r and s where the minimum occurs the dot products V0.V1,
-        V0.V2, V1.V1, V1.V2 and V2.V2 are needed. Compute these values. ---*/
-  su2double dotV0V1 = 0.0, dotV0V2 = 0, dotV1V1 = 0.0, dotV1V2 = 0.0, dotV2V2 = 0.0;
-  for(unsigned short k=0; k<nDim; ++k) {
-    dotV0V1 += V0[k]*V1[k];
-    dotV0V2 += V0[k]*V2[k];
-    dotV1V1 += V1[k]*V1[k];
-    dotV1V2 += V1[k]*V2[k];
-    dotV2V2 += V2[k]*V2[k];
-  }
-
-  /*--- Solve the linear system for r and s. ---*/
-  const su2double detInv = 1.0/(dotV1V1*dotV2V2 - dotV1V2*dotV1V2);
-
-  r = detInv*(dotV0V1*dotV2V2 - dotV0V2*dotV1V2);
-  s = detInv*(dotV0V2*dotV1V1 - dotV0V1*dotV1V2);
-
-  /*--- Determine the interpolation weights. ---*/
-  weightsInterpol[0] = -0.5*(r + s);
-  weightsInterpol[1] =  0.5*(r + 1.0);
-  weightsInterpol[2] =  0.5*(s + 1.0);
-
-  /*--- Check if the projection is inside the triangle. ---*/
-  if((r >= paramLowerBound) && (s >= paramLowerBound) && ((r+s) <= tolInsideElem)) {
-
-    /*--- The projection of the coordinate is inside the triangle. Compute the
-          minimum distance squared and return true. ---*/
-    dist2Tria = 0.0;
-    for(unsigned short k=0; k<nDim; ++k) {
-      const su2double ds = V0[k] - r*V1[k] - s*V2[k];
-      dist2Tria += ds*ds;
-    }
-
-    return true;
-  }
-
-  /*--- The projection of the coordinate is outside the triangle.
-        Return false. ---*/
-  return false;
-}
-
-bool CADTElemClass::Dist2ToQuadrilateral(const unsigned long i0,
-                                         const unsigned long i1,
-                                         const unsigned long i2,
-                                         const unsigned long i3,
-                                         const su2double     *coor,
-                                         su2double           &r,
-                                         su2double           &s,
-                                         su2double           &dist2Quad,
-                                         su2double           *weightsInterpol) const {
-
-  constexpr unsigned short nDim = 3; // boundary quadrilaterals only exist in 3D
-
-  /* Definition of the maximum number of iterations in the iterative solver
-     and the tolerance level. */
-  const unsigned short maxIt = 10;
-  const su2double tolIt      = 1.e-10;
-
-  /*--- The quadrilateral is parametrized by
-        X = {(1-r)*(1-s)*X0 + (1+r)*(1-s)*X1 + (1+r)*(1+s)*X2 + (1-r)*(1+s)*X3}/4,
-        -1 <= r,s <= 1. As a consequence the minimum distance is found where the
-        expression |V0 - r*V1 - s*V2 - r*s*V3| has a minimum, where the vectors
-        V0, V1, V2 and V3 are defined as: V0 = coor - (X0+X1+X2+X3)/4,
-        V1 = (X1+X2-X0-X3)/4, V2 = (X2+X3-X0-X1), V3 = (X0+X2-X1-X3)/4. First
-        construct the vectors V0, V1, V2 and V3. ---*/
-  su2double V0[3], V1[3], V2[3], V3[3];
-  for(unsigned short k=0; k<nDim; ++k) {
-    V0[k] = coor[k] - 0.25*(coorPoints[i0+k] + coorPoints[i1+k]
-          +                 coorPoints[i2+k] + coorPoints[i3+k]);
-    V1[k] =           0.25*(coorPoints[i1+k] + coorPoints[i2+k]
-          -                 coorPoints[i0+k] - coorPoints[i3+k]);
-    V2[k] =           0.25*(coorPoints[i2+k] + coorPoints[i3+k]
-          -                 coorPoints[i0+k] - coorPoints[i1+k]);
-    V3[k] =           0.25*(coorPoints[i0+k] + coorPoints[i2+k]
-          -                 coorPoints[i1+k] - coorPoints[i3+k]);
-  }
-
-  /*--- The minimization problem results in the following
-        set of nonlinear equations.
-        (V0 - r*V1 - s*V2 - r*s*V3).(-V1 - s*V3) = 0
-        (V0 - r*V1 - s*V2 - r*s*V3).(-V2 - r*V3) = 0.
-        These equations are the gradients of the distance function squared w.r.t.
-        the parametric coordinates r and s. The coefficients for these equations
-        involve a couple of dot products, which are computed first.   ---*/
-  su2double V0V1 = 0.0, V0V2 = 0.0, V0V3 = 0.0, V1V1 = 0.0, V1V2 = 0.0,
-            V1V3 = 0.0, V2V2 = 0.0, V2V3 = 0.0, V3V3 = 0.0;
-  for(unsigned short k=0; k<nDim; ++k) {
-    V0V1 += V0[k]*V1[k]; V0V2 += V0[k]*V2[k]; V0V3 += V0[k]*V3[k];
-    V1V1 += V1[k]*V1[k]; V1V2 += V1[k]*V2[k]; V1V3 += V1[k]*V3[k];
-    V2V2 += V2[k]*V2[k]; V2V3 += V2[k]*V3[k]; V3V3 += V3[k]*V3[k];
-  }
-
-  /*--- The first equation given above is linear in r and can be used to
-        express r as a function of s, i.e.
-        r = (V0V1 + (V0V3-V1V2) s - V2V3 s^2)/(V1V1 + 2 V1V3 s + V3V3 s^2).
-        This is substituted in the second equation and after some rearranging
-        a fifth order equation for s is obtained, i.e.
-        a5 s^5 + a4 s^4 + a3 s^3 + a2 s^2 + a1 s + a0 = 0.
-        The coefficients for this equation are computed below. ---*/
-  const su2double t1  = V0V1 * V0V1;
-  const su2double t3  = V0V3 - V1V2;
-  const su2double t6  = V1V1 * V1V1;
-  const su2double t11 = V0V1 * V2V3 * 2.0;
-  const su2double t14 = V0V3 * V0V3;
-  const su2double t16 = V0V3 * V1V2 * 2.0;
-  const su2double t17 = V1V2 * V1V2;
-  const su2double t22 = V1V3 * V1V3;
-  const su2double t34 = V3V3 * V0V2;
-  const su2double t50 = V2V3 * V2V3;
-  const su2double t55 = V3V3 * V3V3;
-
-  su2double a0 = -V1V1 * t3 * V0V1 - t6 * V0V2 + V1V3 * t1;
-  su2double a1 = t6 * V2V2 + V1V1 * (-4.0 * V0V2 * V1V3 + t11 - t14 + t16 - t17) + t1 * V3V3;
-  su2double a2 = -4.0 * t22 * V0V2 + V1V3 * (4.0 * V1V1 * V2V2 + t11 - t14 + t16 - t17)
-               + (V0V1 * V3V3 + 3.0 * V2V3 * V1V1) * V0V3 + V1V1 * (-3.0 * V1V2 * V2V3 - 2.0 * t34)
-               - V0V1 * V1V2 * V3V3;
-  su2double a3 = 4.0 * V2V2 * t22 + V1V3 * (4.0 * V2V3 * t3 - 4.0 * t34)
-               + 2.0 * (V2V2 * V3V3 - t50) * V1V1;
-  su2double a4 = -t55 * V0V2 + V3V3 * (4.0 * V2V2 * V1V3 + V2V3 * t3) - 3.0 * t50 * V1V3;
-  su2double a5 = t55 * V2V2 - V3V3 * t50;
-
-  /* Determine the maximum of these coefficients and scale them. */
-  su2double scaleFact = max(fabs(a0),  fabs(a1));
-  scaleFact           = max(scaleFact, fabs(a2));
-  scaleFact           = max(scaleFact, fabs(a3));
-  scaleFact           = max(scaleFact, fabs(a4));
-  scaleFact           = max(scaleFact, fabs(a5));
-
-  scaleFact = 1.0/scaleFact;
-
-  a0 *= scaleFact; a1 *= scaleFact; a2 *= scaleFact;
-  a3 *= scaleFact; a4 *= scaleFact; a5 *= scaleFact;
-
-  /* The coefficients that occur in the derivative of f, i.e.
-     b4 s^4 + b3 s^3 + b2 s^2 + b1 s + b0. */
-  const su2double b4 = 5.0*a5;
-  const su2double b3 = 4.0*a4;
-  const su2double b2 = 3.0*a3;
-  const su2double b1 = 2.0*a2;
-  const su2double b0 =     a1;
-
-  /* Initial guess for s. */
-  s = 0.0;
-
-  /*--- Newtons algorithm to solve the nonlinear equation
-        a5 s^5 + a4 s^4 + a3 s^3 + a2 s^2 + a1 s + a0 = 0. ---*/
-  unsigned short itCount;
-  for(itCount=0; itCount<maxIt; ++itCount) {
-
-    /* Store the old value of s for determining the actual update. */
-    const su2double sOld = s;
-
-    /* Compute the values of s2 to s5. */
-    const su2double s2 = s*s;
-    const su2double s3 = s2*s;
-    const su2double s4 = s3*s;
-    const su2double s5 = s4*s;
-
-    /* Compute the value of the function and its first derivative. */
-    const su2double  f = a5*s5 + a4*s4 + a3*s3 + a2*s2 + a1*s + a0;
-    const su2double df = b4*s4 + b3*s3 + b2*s2 + b1*s  + b0;
-
-    /* Compute the value of the update and the new value of s. */
-    su2double ds = f/df;
-    s -= ds;
-
-    /* Clipping, such that s is bounded to a bit outside the quadrilateral. */
-    s = max(s, -1.5);
-    s = min(s,  1.5);
-
-    /* Set the actual value of ds. */
-    ds = sOld - s;
-
-    /*--- Check for convergence. ---*/
-    if(fabs(ds) <= tolIt) break;
-  }
-
-  /* Check if Newtons algorithm did not converge. */
-  if(itCount == maxIt) {
-
-    /* Newtons algorithm did not converge. The most likely reason is that there is
-       no root for s on the interval paramLowerBound to paramUpperBound. Check this.
-       First compute the function value for paramLowerBound. */
-    s = paramLowerBound;
-
-    su2double s2 = s*s;
-    su2double s3 = s2*s;
-    su2double s4 = s3*s;
-    su2double s5 = s4*s;
-
-    su2double f = a5*s5 + a4*s4 + a3*s3 + a2*s2 + a1*s + a0;
-
-    /* Loop over a number of sampling points to check if the sign of f changes.
-       If it does, this means that there is a root between s-ds and s. Hence
-       a break from this loop can be made. */
-    const su2double ds = (paramUpperBound - paramLowerBound)*0.1;
-    for(itCount=1; itCount<=10; ++itCount) {
-
-      const su2double fOld = f;
-      s += ds;
-
-      s2 = s*s; s3 = s2*s; s4 = s3*s; s5 = s4*s;
-      f  = a5*s5 + a4*s4 + a3*s3 + a2*s2 + a1*s + a0;
-
-      if(f*fOld <= 0.0) break;
-    }
-
-    /* If the end of the loop is reached this means that there is no root for s
-       between the lower and upper bound. Return false. */
-    if(itCount > 10) return false;
-
-    /* Newtons algorithm did not converge, but there is a root. Do a crude approximation
-       of the root using bisection. */
-    s -= 0.5*ds;
-  }
-
-  /* Check if s is inside the quadrilateral. If not, return false. */
-  if(s < paramLowerBound || s > paramUpperBound) return false;
-
-  /* Compute the corresponding value of r and check if it is inside the
-     quadrilateral. If not return false. */
-  const su2double s2 = s*s;
-
-  r = (V0V1 + (V0V3-V1V2)*s - V2V3*s2)/(V1V1 + 2.0*V1V3*s + V3V3*s2);
-  if(r < paramLowerBound || r > paramUpperBound) return false;
-
-  /*--- The projection is inside the quadrilateral. Determine the minimum distance
-        squared and return true to indicate that the projection is inside. ---*/
-  dist2Quad = 0.0;
-  for(unsigned short k=0; k<nDim; ++k) {
-    const su2double ds = V0[k] - r*V1[k] - s*V2[k] - r*s*V3[k];
-    dist2Quad += ds*ds;
-  }
-
-  weightsInterpol[0] = 0.25*(1.0-r)*(1.0-s);
-  weightsInterpol[1] = 0.25*(1.0+r)*(1.0-s);
-  weightsInterpol[2] = 0.25*(1.0+r)*(1.0+s);
-  weightsInterpol[3] = 0.25*(1.0-r)*(1.0+s);
-
-  /*--- Return true to indicate that the projection is inside. ---*/
   return true;
 }

@@ -65,11 +65,6 @@ public:
   CVertexMPI(unsigned long val_point);
 
   /*!
-   * \brief Destructor of the class.
-   */
-  ~CVertexMPI(void) override;  
-
-  /*!
    * \brief Get the type of rotation/traslation that must be applied.
    * \return Type of the element using VTK nomenclature.
    */

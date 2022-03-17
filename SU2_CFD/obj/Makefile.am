@@ -229,8 +229,7 @@ libSU2Core_sources = ../src/definition_structure.cpp \
   ../../Common/src/geometry/elements/CLINE.cpp \
   ../../Common/src/geometry/elements/CTETRA4.cpp \
   ../../Common/src/geometry/elements/CPYRAM6.cpp \
-  ../../Common/src/geometry/elements/CTRIA3.cpp \
-  ../src/fem_interpolation_structure.cpp
+  ../../Common/src/geometry/elements/CTRIA3.cpp 
 
 su2_cfd_sources = \
   ../src/SU2_CFD.cpp

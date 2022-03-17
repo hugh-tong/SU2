@@ -201,8 +201,7 @@ void CMeshFEM_DG::SetWallDistance(CADTElemClass *WallADT, const CConfig* config,
         unsigned long  elemID;
         int            rankID;
         su2double      dist;
-        su2double      weightsInterpol[4];
-        WallADT->DetermineNearestElement(coor, dist, markerID, elemID, rankID, weightsInterpol);
+        WallADT->DetermineNearestElement(coor, dist, markerID, elemID, rankID);
 
         volElem[l].wallDistance[i] = dist;
       }
@@ -235,8 +234,7 @@ void CMeshFEM_DG::SetWallDistance(CADTElemClass *WallADT, const CConfig* config,
         unsigned long  elemID;
         int            rankID;
         su2double      dist;
-        su2double      weightsInterpol[4];
-        WallADT->DetermineNearestElement(coor, dist, markerID, elemID, rankID, weightsInterpol);
+        WallADT->DetermineNearestElement(coor, dist, markerID, elemID, rankID);
 
         volElem[l].wallDistanceSolDOFs[i] = dist;
       }
@@ -269,8 +267,7 @@ void CMeshFEM_DG::SetWallDistance(CADTElemClass *WallADT, const CConfig* config,
         unsigned long  elemID;
         int            rankID;
         su2double      dist;
-        su2double      weightsInterpol[4];
-        WallADT->DetermineNearestElement(coor, dist, markerID, elemID, rankID, weightsInterpol);
+        WallADT->DetermineNearestElement(coor, dist, markerID, elemID, rankID);
 
         matchingFaces[l].wallDistance[i] = dist;
       }
@@ -322,8 +319,7 @@ void CMeshFEM_DG::SetWallDistance(CADTElemClass *WallADT, const CConfig* config,
             unsigned long  elemID;
             int            rankID;
             su2double      dist;
-            su2double      weightsInterpol[4];
-            WallADT->DetermineNearestElement(coor, dist, markerID, elemID, rankID, weightsInterpol);
+            WallADT->DetermineNearestElement(coor, dist, markerID, elemID, rankID);
 
             surfElem[l].wallDistance[i] = dist;
           }

@@ -27,7 +27,6 @@
 
 #pragma once
 
-#include <cstring>
 #include "./CADTBaseClass.hpp"
 #include "./CBBoxTargetClass.hpp"
 #include "../parallelization/omp_structure.hpp"
@@ -80,9 +79,6 @@ public:
    * \param[in]     globalTree   Whether or not a global tree must be built. If false
                                  a local ADT is built.
    */
-
-  CADTElemClass() = default;
-
   CADTElemClass(unsigned short         val_nDim,
                 vector<su2double>      &val_coor,
                 vector<unsigned long>  &val_connElem,
@@ -90,14 +86,6 @@ public:
                 vector<unsigned short> &val_markerID,
                 vector<unsigned long>  &val_elemID,
                 const bool             globalTree);
-
-  void CreateADT(unsigned short val_nDim,
-                vector<su2double>      &val_coor,
-                vector<unsigned long>  &val_connElem,
-                vector<unsigned short> &val_VTKElem,
-                vector<unsigned short> &val_markerID,
-                vector<unsigned long>  &val_elemID,
-                const bool             globalTree);  
 
   /*!
    * \brief Function, which determines the element that contains the given coordinate.
@@ -138,13 +126,13 @@ public:
                                       su2double       &dist,
                                       unsigned short  &markerID,
                                       unsigned long   &elemID,
-                                      int             &rankID,
-                                      su2double       *weightsInterpol) {
+                                      int             &rankID) {
     const auto iThread = omp_get_thread_num();
     DetermineNearestElement_impl(BBoxTargets[iThread], FrontLeaves[iThread],
-              FrontLeavesNew[iThread], coor, dist, markerID, elemID, rankID, weightsInterpol);
+              FrontLeavesNew[iThread], coor, dist, markerID, elemID, rankID);
   }
 
+private:
   /*!
    * \brief Implementation of DetermineContainingElement.
    * \note Working variables (first two) passed explicitly for thread safety.
@@ -169,11 +157,7 @@ public:
                                     su2double       &dist,
                                     unsigned short  &markerID,
                                     unsigned long   &elemID,
-                                    int             &rankID,
-                                    su2double       *weightsInterpol) const;
-  
-
-private:
+                                    int             &rankID) const;
 
   /*!
    * \brief Function, which checks whether or not the given coordinate is
@@ -349,7 +333,6 @@ private:
   void Dist2ToElement(const unsigned long elemID,
                       const su2double     *coor,
                       su2double           &dist2Elem) const;
- 
   /*!
    * \brief Function, which computes the distance squared of the given coordinate
             to a linear line element.
@@ -412,83 +395,9 @@ private:
                        su2double           &dist2Tria,
                        su2double           &r,
                        su2double           &s) const;
-
   /*!
-   * \brief Function, which computes the distance squared of the given coordinate
-            to the given element.
-   * \param[in]  elemID    ID of the element to which the distance must be determined.
-   * \param[in]  coor      Coordinate for which the distance to the element must be determined.
-   * \param[out] dist2Elem Distance squared from the coordinate to the element.
+   * \brief Default constructor of the class, disabled.
    */
-  void Dist2ToElement(const unsigned long elemID,
-                      const su2double     *coor,
-                      su2double           &dist2Elem,
-                      unsigned short      &nInterpol,
-                      su2double           *weightsInterpol) const;  
-  /*!
-   * \brief Function, which computes the distance squared of the given coordinate
-            to a linear line element.
-   * \param[in]  i0        Starting index in coorPoints, where the coordinates of the
-                           first point of the line are stored.
-   * \param[in]  i1        Starting index in coorPoints, where the coordinates of the
-                           second point of the line are stored.
-   * \param[in]  coor      Coordinate for which the distance to the line must be determined.
-   * \param[out] dist2Line Distance squared from the coordinate to the line.
-   */
-  void Dist2ToLine(const unsigned long i0,
-                   const unsigned long i1,
-                   const su2double     *coor,
-                   su2double           &dist2Line,
-                   su2double           *weightsInterpol) const ;  
-  /*!
-   * \brief Function, which computes the distance squared of the given coordinate
-            to a linear quadrilateral element if the projection is inside the quad.
-   * \param[in]  i0        Starting index in coorPoints, where the coordinates of the
-                           first point of the quadrilateral are stored.
-   * \param[in]  i1        Starting index in coorPoints, where the coordinates of the
-                           second point of the quadrilateral are stored.
-   * \param[in]  i2        Starting index in coorPoints, where the coordinates of the
-                           third point of the quadrilateral are stored.
-   * \param[in]  i3        Starting index in coorPoints, where the coordinates of the
-                           fourth point of the quadrilateral are stored.
-   * \param[in]  coor      Coordinate for which the distance to the quadrilateral
-                           must be determined.
-   * \param[out] r         Parametric coordinate of the projection.
-   * \param[out] s         Parametric coordinate of the projection.
-   * \param[out] dist2Quad Distance squared from the coordinate to the quadrilateral.
-   * \return     True if the projection is inside the quadrilateral and false otherwise.
-   */
-  bool Dist2ToQuadrilateral(const unsigned long i0,
-                            const unsigned long i1,
-                            const unsigned long i2,
-                            const unsigned long i3,
-                            const su2double     *coor,
-                            su2double           &r,
-                            su2double           &s,
-                            su2double           &dist2Quad,
-                            su2double           *weightsInterpol) const;
-  /*!
-   * \brief Function, which computes the distance squared of the given coordinate
-            to a linear triangular element if the projection is inside the triangle.
-   * \param[in]  i0        Starting index in coorPoints, where the coordinates of the
-                           first point of the triangle are stored.
-   * \param[in]  i1        Starting index in coorPoints, where the coordinates of the
-                           second point of the triangle are stored.
-   * \param[in]  i2        Starting index in coorPoints, where the coordinates of the
-                           third point of the triangle are stored.
-   * \param[in]  coor      Coordinate for which the distance to the triangle must be determined.
-   * \param[out] dist2Tria Distance squared from the coordinate to the triangle.
-   * \param[out] r         Parametric coordinate of the projection.
-   * \param[out] s         Parametric coordinate of the projection.
-   * \return     True if the projection is inside the triangle and false otherwise.
-   */
-  bool Dist2ToTriangle(const unsigned long i0,
-                       const unsigned long i1,
-                       const unsigned long i2,
-                       const su2double     *coor,
-                       su2double           &dist2Tria,
-                       su2double           &r,
-                       su2double           &s,
-                       su2double           *weightsInterpol) const;    
+  CADTElemClass() = delete;
 
 };

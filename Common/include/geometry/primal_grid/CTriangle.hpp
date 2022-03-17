@@ -59,12 +59,7 @@ public:
    * \param[in] val_point_2 - Index of the 3th triangle point read from the grid file.
    */
   CTriangle(unsigned long val_point_0, unsigned long val_point_1,
-            unsigned long val_point_2, unsigned short val_nDim);
-
-  /*!
-   * \brief Destructor of the class.
-   */
-  ~CTriangle(void) override;  
+            unsigned long val_point_2);
 
   /*!
    * \brief Change the orientation of an element.

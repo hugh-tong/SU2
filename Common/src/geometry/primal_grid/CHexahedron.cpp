@@ -44,32 +44,9 @@ CHexahedron::CHexahedron(unsigned long val_point_0, unsigned long val_point_1,
   Nodes[2] = val_point_2; Nodes[3] = val_point_3;
   Nodes[4] = val_point_4; Nodes[5] = val_point_5;
   Nodes[6] = val_point_6; Nodes[7] = val_point_7;
-
-  unsigned short iDim, iFace, iNeighbor_Elements;
-  unsigned short nFaces = 6;  
-
-  /*--- Allocate center-of-gravity coordinates ---*/
-  nDim = 3;
-
-  Coord_FaceElems_CG = new su2double* [nFaces];
-  for (iFace = 0; iFace < nFaces; iFace++) {
-    Coord_FaceElems_CG[iFace] = new su2double [nDim];
-    for (iDim = 0; iDim < nDim; iDim++)
-      Coord_FaceElems_CG[iFace][iDim] = 0.0;
-  }  
 }
 
 void CHexahedron::Change_Orientation() {
   std::swap(Nodes[1], Nodes[3]);
   std::swap(Nodes[5], Nodes[7]);
-}
-
-CHexahedron::~CHexahedron() {
-  unsigned short iFaces;
-  unsigned short nFaces = 6; 
-
-  for (iFaces = 0; iFaces < nFaces; iFaces++)
-    if (Coord_FaceElems_CG[iFaces] != nullptr) delete[] Coord_FaceElems_CG[iFaces];
-  delete[] Coord_FaceElems_CG;
-
 }

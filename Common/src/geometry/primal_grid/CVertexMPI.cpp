@@ -41,13 +41,3 @@ CVertexMPI::CVertexMPI(unsigned long val_point):
   /*--- By default, no rotation in the solution ---*/
   Rotation_Type = 0;
 }
-
-CVertexMPI::~CVertexMPI() {
-  unsigned short iFaces;
-  unsigned short nFaces = 0;
-
-    for (iFaces = 0; iFaces < nFaces; iFaces++)
-      if (Coord_FaceElems_CG[iFaces] != nullptr) delete[] Coord_FaceElems_CG[iFaces];
-    delete[] Coord_FaceElems_CG;
-
-}

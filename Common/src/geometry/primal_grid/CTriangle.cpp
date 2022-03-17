@@ -34,34 +34,11 @@ constexpr unsigned short CTriangleConnectivity::nNeighbor_Nodes[3];
 constexpr unsigned short CTriangleConnectivity::Neighbor_Nodes[3][2];
 
 CTriangle::CTriangle(unsigned long val_point_0, unsigned long val_point_1,
-           unsigned long val_point_2, unsigned short val_nDim):
+           unsigned long val_point_2):
   CPrimalGridWithConnectivity<CTriangleConnectivity>(false)
 {
   /*--- Define face structure of the element ---*/
   Nodes[0] = val_point_0;
   Nodes[1] = val_point_1;
   Nodes[2] = val_point_2;
-
-  unsigned short iDim, iFace, iNeighbor_Elements;
-  unsigned short nFaces = 3;  
-
-  /*--- Allocate CG coordinates ---*/
-  nDim = val_nDim;
-
-  Coord_FaceElems_CG = new su2double* [nFaces];
-  for (iFace = 0; iFace < nFaces; iFace++) {
-    Coord_FaceElems_CG[iFace] = new su2double [nDim];
-    for (iDim = 0; iDim < nDim; iDim++)
-      Coord_FaceElems_CG[iFace][iDim] = 0.0;
-  }  
-}
-
-CTriangle::~CTriangle() {
-  unsigned short iFaces;
-  unsigned short nFaces = 3;
-
-  for (iFaces = 0; iFaces < nFaces; iFaces++)
-    if (Coord_FaceElems_CG[iFaces] != nullptr) delete[] Coord_FaceElems_CG[iFaces];
-  delete[] Coord_FaceElems_CG;
-
 }

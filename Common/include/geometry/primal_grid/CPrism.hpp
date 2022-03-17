@@ -66,11 +66,6 @@ public:
          unsigned long val_point_4, unsigned long val_point_5);
 
   /*!
-   * \brief Destructor of the class.
-   */
-  ~CPrism(void) override;
-  
-  /*!
    * \brief Change the orientation of an element.
    */
   void Change_Orientation() override;

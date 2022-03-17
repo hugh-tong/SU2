@@ -45,32 +45,9 @@ CPrism::CPrism(unsigned long val_point_0, unsigned long val_point_1,
   Nodes[3] = val_point_3;
   Nodes[4] = val_point_4;
   Nodes[5] = val_point_5;
-
-  unsigned short iDim, iFace, iNeighbor_Elements;
-  unsigned short nFaces = 5;
-
-  /*--- Allocate CG coordinates ---*/
-  nDim = 3;
-
-  Coord_FaceElems_CG = new su2double* [nFaces];
-  for (iFace = 0; iFace < nFaces; iFace++) {
-    Coord_FaceElems_CG[iFace] = new su2double [nDim];
-    for (iDim = 0; iDim < nDim; iDim++)
-      Coord_FaceElems_CG[iFace][iDim] = 0.0;
-  }  
 }
 
 void CPrism::Change_Orientation(void) {
   std::swap(Nodes[0], Nodes[1]);
   std::swap(Nodes[3], Nodes[4]);
-}
-
-CPrism::~CPrism() {
-  unsigned short iFaces;
-  unsigned short nFaces = 5;
-
-  for (iFaces = 0; iFaces < nFaces; iFaces++)
-    if (Coord_FaceElems_CG[iFaces] != nullptr) delete[] Coord_FaceElems_CG[iFaces];
-  delete[] Coord_FaceElems_CG;
-
 }

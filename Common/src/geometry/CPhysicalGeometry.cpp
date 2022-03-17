@@ -2318,7 +2318,7 @@ void CPhysicalGeometry::LoadVolumeElements(CConfig *config, CGeometry *geometry)
 
     elem[jElem] = new CTriangle(Local_Nodes[0],
                                 Local_Nodes[1],
-                                Local_Nodes[2], 2);
+                                Local_Nodes[2]);
 
     elem[jElem]->SetGlobalIndex(kElem);
 
@@ -2351,7 +2351,7 @@ void CPhysicalGeometry::LoadVolumeElements(CConfig *config, CGeometry *geometry)
     elem[jElem] = new CQuadrilateral(Local_Nodes[0],
                                      Local_Nodes[1],
                                      Local_Nodes[2],
-                                     Local_Nodes[3], 2);
+                                     Local_Nodes[3]);
 
     elem[jElem]->SetGlobalIndex(kElem);
 
@@ -2733,7 +2733,7 @@ void CPhysicalGeometry::LoadSurfaceElements(CConfig *config, CGeometry *geometry
       /*--- Create the geometry object for this element. ---*/
 
       bound[iMarker][nElemBound_Local[iMarker]] = new CLine(Local_Nodes[0],
-                                                            Local_Nodes[1], 2);
+                                                            Local_Nodes[1]);
 
       /*--- Increment our counters for this marker and element type. ---*/
 
@@ -2766,7 +2766,7 @@ void CPhysicalGeometry::LoadSurfaceElements(CConfig *config, CGeometry *geometry
 
       bound[iMarker][nElemBound_Local[iMarker]] = new CTriangle(Local_Nodes[0],
                                                                 Local_Nodes[1],
-                                                                Local_Nodes[2], 3);
+                                                                Local_Nodes[2]);
 
       /*--- Increment our counters for this marker and element type. ---*/
 
@@ -2800,7 +2800,7 @@ void CPhysicalGeometry::LoadSurfaceElements(CConfig *config, CGeometry *geometry
       bound[iMarker][nElemBound_Local[iMarker]] = new CQuadrilateral(Local_Nodes[0],
                                                                      Local_Nodes[1],
                                                                      Local_Nodes[2],
-                                                                     Local_Nodes[3], 3);
+                                                                     Local_Nodes[3]);
 
       /*--- Increment our counters for this marker and element type. ---*/
 
@@ -3467,17 +3467,17 @@ void CPhysicalGeometry::SetBoundaries(CConfig *config) {
       for (iElem_Bound = 0; iElem_Bound < nElem_Bound[iMarker]; iElem_Bound++) {
         if (bound[iMarker][iElem_Bound]->GetVTK_Type() == LINE)
           bound_Copy[iMarker][iElem_Bound] = new CLine(bound[iMarker][iElem_Bound]->GetNode(0),
-                                                       bound[iMarker][iElem_Bound]->GetNode(1), 2);
+                                                       bound[iMarker][iElem_Bound]->GetNode(1));
         if (bound[iMarker][iElem_Bound]->GetVTK_Type() == TRIANGLE)
 
           bound_Copy[iMarker][iElem_Bound] = new CTriangle(bound[iMarker][iElem_Bound]->GetNode(0),
                                                            bound[iMarker][iElem_Bound]->GetNode(1),
-                                                           bound[iMarker][iElem_Bound]->GetNode(2), 3);
+                                                           bound[iMarker][iElem_Bound]->GetNode(2));
         if (bound[iMarker][iElem_Bound]->GetVTK_Type() == QUADRILATERAL)
           bound_Copy[iMarker][iElem_Bound] = new CQuadrilateral(bound[iMarker][iElem_Bound]->GetNode(0),
                                                             bound[iMarker][iElem_Bound]->GetNode(1),
                                                             bound[iMarker][iElem_Bound]->GetNode(2),
-                                                            bound[iMarker][iElem_Bound]->GetNode(3), 3);
+                                                            bound[iMarker][iElem_Bound]->GetNode(3));
       }
     }
   }
@@ -3835,7 +3835,7 @@ void CPhysicalGeometry::LoadLinearlyPartitionedVolumeElements(CConfig        *co
       case TRIANGLE:
         elem[iElem] = new CTriangle(connectivity[0],
                                     connectivity[1],
-                                    connectivity[2], nDim);
+                                    connectivity[2]);
         nelem_triangle++;
         break;
 
@@ -3843,7 +3843,7 @@ void CPhysicalGeometry::LoadLinearlyPartitionedVolumeElements(CConfig        *co
         elem[iElem] = new CQuadrilateral(connectivity[0],
                                          connectivity[1],
                                          connectivity[2],
-                                         connectivity[3], nDim);
+                                         connectivity[3]);
         nelem_quad++;
         break;
 
@@ -3996,18 +3996,18 @@ void CPhysicalGeometry::LoadUnpartitionedSurfaceElements(CConfig        *config,
         switch(vtk_type) {
           case LINE:
             bound[iMarker][iElem] = new CLine(connectivity[0],
-                                              connectivity[1], 2);
+                                              connectivity[1]);
             iElem++; nelem_edge_bound++; break;
           case TRIANGLE:
             bound[iMarker][iElem] = new CTriangle(connectivity[0],
                                                   connectivity[1],
-                                                  connectivity[2], 3);
+                                                  connectivity[2]);
             iElem++; nelem_triangle_bound++; break;
           case QUADRILATERAL:
             bound[iMarker][iElem] = new CQuadrilateral(connectivity[0],
                                                        connectivity[1],
                                                        connectivity[2],
-                                                       connectivity[3], 3);
+                                                       connectivity[3]);
             iElem++; nelem_quad_bound++; break;
         }
 
@@ -6621,64 +6621,6 @@ void CPhysicalGeometry::GatherInOutAverageValues(CConfig *config, bool allocate)
 
 }
 
-void CPhysicalGeometry::SetCoord_CG(void) {
-
-  unsigned short iMarker, iNode;
-  unsigned long elem_poin, edge_poin, iElem, iEdge;
-
-  /*--- Buffer of pointers to node coordinates ---*/
-  array<const su2double*, N_POINTS_MAXIMUM> Coord;
-
-  /*--- Compute the center of gravity for elements ---*/
-
-  SU2_OMP_FOR_STAT(roundUpDiv(nElem,2*omp_get_max_threads()))
-  for (iElem = 0; iElem<nElem; iElem++) {
-    assert(elem[iElem]->GetnNodes() <= N_POINTS_MAXIMUM && "Insufficient N_POINTS_MAXIMUM");
-
-    /*--- Store the coordinates for all the element nodes ---*/
-    for (iNode = 0; iNode < elem[iElem]->GetnNodes(); iNode++) {
-      elem_poin = elem[iElem]->GetNode(iNode);
-      Coord[iNode] = nodes->GetCoord(elem_poin);
-    }
-
-    /*--- Compute the element CG coordinates ---*/
-    elem[iElem]->SetCoord_CG(Coord.data());
-  }
-
-  /*--- Center of gravity for face elements ---*/
-
-  SU2_OMP_FOR_DYN(1)
-  for (iMarker = 0; iMarker < nMarker; iMarker++) {
-    for (iElem = 0; iElem < nElem_Bound[iMarker]; iElem++) {
-
-      /*--- Store the coordinates for all the element nodes ---*/
-      for (iNode = 0; iNode < bound[iMarker][iElem]->GetnNodes(); iNode++) {
-        elem_poin = bound[iMarker][iElem]->GetNode(iNode);
-        Coord[iNode] = nodes->GetCoord(elem_poin);
-      }
-
-      /*--- Compute the element CG coordinates ---*/
-      bound[iMarker][iElem]->SetCoord_CG(Coord.data());
-    }
-  }
-
-  /*--- Center of gravity for edges ---*/
-
-  SU2_OMP_FOR_STAT(roundUpDiv(nEdge,2*omp_get_max_threads()))
-  for (iEdge = 0; iEdge < nEdge; iEdge++) {
-
-    /*--- Store the coordinates for all the element nodes ---*/
-    for (iNode = 0; iNode < edges->GetnNodes(); iNode++) {
-      edge_poin=edges->GetNode(iEdge,iNode);
-      Coord[iNode] = nodes->GetCoord(edge_poin);
-    }
-
-    /*--- Compute the edge CG coordinates ---*/
-    edges->SetCoord_CG(iEdge, Coord.data());
-  }
-
-}
-
 void CPhysicalGeometry::SetMaxLength(CConfig* config) {
 
   SU2_OMP_FOR_STAT(roundUpDiv(nPointDomain,omp_get_max_threads()))
@@ -7790,162 +7732,6 @@ void CPhysicalGeometry::VisualizeControlVolume(const CConfig *config) const {
     }
   }
 }
-
-void CPhysicalGeometry::VisualizeControlVolume(CConfig *config, unsigned short action) {
-
-  /*--- This routine is only meant for visualization in serial currently ---*/
-#ifndef HAVE_MPI
-
-  unsigned long face_iPoint = 0, face_jPoint = 0, iElem, iPoint_Viz;
-  long iEdge;
-  unsigned short nEdgesFace = 1, iFace, iEdgesFace, iDim;
-  su2double *Coord_Edge_CG, *Coord_FaceElem_CG, *Coord_Elem_CG, *Coord_FaceiPoint,
-  *Coord_FacejPoint;
-  int counter = 0;
-  char cstr[MAX_STRING_SIZE], buffer[50];
-  ofstream Tecplot_File;
-  string mesh_filename;
-  vector<su2double> X, Y, Z, X_n, Y_n, Z_n;
-  su2double r1[3], r2[3], CrossProduct[3];
-
-  /*--- Access the point number for control volume we want to vizualize ---*/
-
-  iPoint_Viz = config->GetVisualize_CV();
-
-  /*--- Allocate some structures for building the dual CVs ---*/
-
-  Coord_Edge_CG     = new su2double [nDim];
-  Coord_FaceElem_CG = new su2double [nDim];
-  Coord_Elem_CG     = new su2double [nDim];
-  Coord_FaceiPoint  = new su2double [nDim];
-  Coord_FacejPoint  = new su2double [nDim];
-
-  /*--- Loop over each face of each element ---*/
-
-  CrossProduct[0] = 0.0; CrossProduct[1] = 0.0; CrossProduct[2] = 0.0;
-
-  for (iElem = 0; iElem < nElem; iElem++) {
-
-    for (iFace = 0; iFace < elem[iElem]->GetnFaces(); iFace++) {
-
-      /*--- In 2D all the faces have only one edge ---*/
-      if (nDim == 2) nEdgesFace = 1;
-      /*--- In 3D the number of edges per face is the same as the number of point per face ---*/
-      if (nDim == 3) nEdgesFace = elem[iElem]->GetnNodesFace(iFace);
-
-      /*-- Loop over the edges of a face ---*/
-      for (iEdgesFace = 0; iEdgesFace < nEdgesFace; iEdgesFace++) {
-
-        /*--- In 2D only one edge (two points) per edge ---*/
-        if (nDim == 2) {
-          face_iPoint = elem[iElem]->GetNode(elem[iElem]->GetFaces(iFace,0));
-          face_jPoint = elem[iElem]->GetNode(elem[iElem]->GetFaces(iFace,1));
-        }
-
-        /*--- In 3D there are several edges in each face ---*/
-        if (nDim == 3) {
-          face_iPoint = elem[iElem]->GetNode(elem[iElem]->GetFaces(iFace, iEdgesFace));
-          if (iEdgesFace != nEdgesFace-1)
-            face_jPoint = elem[iElem]->GetNode(elem[iElem]->GetFaces(iFace, iEdgesFace+1));
-          else
-            face_jPoint = elem[iElem]->GetNode(elem[iElem]->GetFaces(iFace,0));
-        }
-
-        /*--- We define a direction (from the smallest index to the greatest) --*/
-        iEdge = FindEdge(face_iPoint, face_jPoint);
-
-        for (iDim = 0; iDim < nDim; iDim++) {
-          Coord_Edge_CG[iDim] = edges->GetCG(iEdge,iDim);
-          Coord_Elem_CG[iDim] = elem[iElem]->GetCG(iDim);
-          Coord_FaceElem_CG[iDim] = elem[iElem]->GetFaceCG(iFace, iDim);
-          Coord_FaceiPoint[iDim] = nodes->GetCoord(face_iPoint, iDim);
-          Coord_FacejPoint[iDim] = nodes->GetCoord(face_jPoint, iDim);
-        }
-
-        /*--- Print out the coordinates for a set of triangles making
-         up a single dual control volume for visualization. ---*/
-
-        if (face_iPoint == iPoint_Viz || face_jPoint == iPoint_Viz) {
-
-          if (nDim == 2) {
-            X.push_back(Coord_Elem_CG[0]); X.push_back(Coord_Edge_CG[0]);
-            Y.push_back(Coord_Elem_CG[1]); Y.push_back(Coord_Edge_CG[1]);
-          } else if (nDim == 3) {
-            X.push_back(Coord_FaceElem_CG[0]); X.push_back(Coord_Edge_CG[0]); X.push_back(Coord_Elem_CG[0]);
-            Y.push_back(Coord_FaceElem_CG[1]); Y.push_back(Coord_Edge_CG[1]); Y.push_back(Coord_Elem_CG[1]);
-            Z.push_back(Coord_FaceElem_CG[2]); Z.push_back(Coord_Edge_CG[2]); Z.push_back(Coord_Elem_CG[2]);
-
-            for (iDim = 0; iDim < nDim; iDim++) {
-              r1[iDim] = Coord_FaceElem_CG[iDim]-Coord_Elem_CG[iDim];
-              r2[iDim] = Coord_Edge_CG[iDim]-Coord_Elem_CG[iDim];
-            }
-            CrossProduct[0] += 0.5*(r1[1]*r2[2] - r1[2]*r2[1]);
-            CrossProduct[1] += 0.5*(r1[2]*r2[0] - r1[0]*r2[2]);
-            CrossProduct[2] += 0.5*(r1[0]*r2[1] - r1[1]*r2[0]);
-          }
-          counter++;
-        }
-      }
-    }
-  }
-
-  /*--- Write a Tecplot file to visualize the CV ---*/
-
-  strcpy(cstr,"dual_cv");
-  SPRINTF (buffer, "_%d.dat", SU2_TYPE::Int(iPoint_Viz));
-  strcat(cstr, buffer);
-
-  Tecplot_File.open(cstr);
-  Tecplot_File << "TITLE= \"Visualization of the control volume\"" << endl;
-
-  if (nDim == 2) {
-    Tecplot_File << "VARIABLES = \"x\",\"y\" " << endl;
-    Tecplot_File << "ZONE NODES= "<< counter*2 <<", ELEMENTS= ";
-    Tecplot_File << counter <<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL"<< endl;
-  } if (nDim == 3) {
-    Tecplot_File << "VARIABLES = \"x\",\"y\",\"z\" " << endl;
-    Tecplot_File << "ZONE NODES= "<< counter*3 <<", ELEMENTS= ";
-    Tecplot_File << counter <<", DATAPACKING=POINT, ZONETYPE=FEBRICK"<< endl;
-  }
-
-  /*--- Write coordinates for the nodes in the order that they were found
-   for each of the edges/triangles making up a dual control volume. ---*/
-
-  for (vector<su2double>::size_type i = 0; i != X.size(); i++) {
-    Tecplot_File << X[i] << "\t" << Y[i];
-    if (nDim == 3) Tecplot_File << "\t" << Z[i];
-    Tecplot_File << "\n";
-  }
-
-  /*--- Create a new connectivity table in the order the faces were found ---*/
-
-  int j;
-  for (int i= 0; i < counter; i++) {
-    if (nDim == 2) {
-      j = i*2;
-      Tecplot_File << j+1 <<"\t"<<j+2 <<"\t"<<j+2 <<"\t"<<j+2 << endl;
-    } if (nDim == 3) {
-      j = i*3;
-      Tecplot_File << j+1 <<"\t"<<j+2 <<"\t"<<j+3 <<"\t"<<j+3 <<"\t";
-      Tecplot_File << j+3<<"\t" <<j+3 <<"\t"<<j+3 <<"\t"<<j+3 << endl;
-    }
-  }
-
-  Tecplot_File.close();
-  X.clear();
-  Y.clear();
-  Z.clear();
-
-  delete[] Coord_Edge_CG;
-  delete[] Coord_FaceElem_CG;
-  delete[] Coord_Elem_CG;
-  delete[] Coord_FaceiPoint;
-  delete[] Coord_FacejPoint;
-
-#endif
-
-}
-
 
 void CPhysicalGeometry::SetCoord_Smoothing (unsigned short val_nSmooth, su2double val_smooth_coeff, CConfig *config) {
   unsigned short iSmooth, nneigh, iMarker;
@@ -11084,8 +10870,8 @@ void CPhysicalGeometry::SetWallDistance(CADTElemClass* WallADT, const CConfig* c
       unsigned long  elemID;
       int            rankID;
       su2double      dist;
-      su2double      weightsInterpol[4];
-      WallADT->DetermineNearestElement(nodes->GetCoord(iPoint), dist, markerID, elemID, rankID, weightsInterpol);
+
+      WallADT->DetermineNearestElement(nodes->GetCoord(iPoint), dist, markerID, elemID, rankID);
 
       if(dist < nodes->GetWall_Distance(iPoint)){
         nodes->SetWall_Distance(iPoint, dist, rankID, iZone, markerID, elemID);

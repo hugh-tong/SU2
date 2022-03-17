@@ -720,8 +720,6 @@ public:
    */
   inline virtual void VisualizeControlVolume(const CConfig *config) const {}
 
-  inline virtual void VisualizeControlVolume(CConfig *config, unsigned short action) {}  
-
   /*!
    * \brief A virtual member.
    * \param[in] config - Definition of the particular problem.
@@ -807,11 +805,6 @@ public:
    */
   inline virtual void SetBoundaries(CConfig *config) {}
 
-  /*!
-   * \brief Sets CG coordinates.
-   */
-  inline virtual void SetCoord_CG(void) {}
-  
   /*!
    * \brief A virtual member.
    * \param[in] fine_grid - Geometrical definition of the problem.

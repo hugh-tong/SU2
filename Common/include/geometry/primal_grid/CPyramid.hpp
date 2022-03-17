@@ -63,12 +63,6 @@ public:
  CPyramid(unsigned long val_point_0, unsigned long val_point_1,
           unsigned long val_point_2, unsigned long val_point_3,
           unsigned long val_point_4);
- 
- /*!
-  * \brief Destructor of the class.
-  */
- ~CPyramid(void) override;
-
 
  /*!
   * \brief Change the orientation of an element.
