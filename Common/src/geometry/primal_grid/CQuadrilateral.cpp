@@ -43,7 +43,7 @@ CQuadrilateral::CQuadrilateral(unsigned long val_point_0, unsigned long val_poin
   Nodes[2] = val_point_2;
   Nodes[3] = val_point_3;
 
-  unsigned short nFaces = 4;  
+  unsigned short nFaces = val_nDim;  
 
   unsigned short iDim, iFace, iNeighbor_Elements;
 
