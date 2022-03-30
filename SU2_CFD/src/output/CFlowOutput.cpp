@@ -1214,7 +1214,7 @@ void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *
       /*--- Compute the location of the critical points of the distortion measure, and center of gravity ---*/
 
       TotalArea = 0.0; xCoord_CG = 0.0; yCoord_CG = 0.0; zCoord_CG = 0.0; PT_Mean = 0.0; Mach_Mean = 0.0;  q_Mean = 0.0;
-      unsigned short TN = 0, N1 = 0, N2 = 0, N3 = 0, N4 =0, N5 = 0, N6=0;
+      unsigned short AT = 0, A1 = 0, A2 = 0, A3 = 0, A4 =0, A5 = 0, A6=0;
       for (iProcessor = 0; iProcessor < nProcessor; iProcessor++) {
         for (iVertex = 0; iVertex < Buffer_Recv_nVertex[iProcessor]; iVertex++) {
 
@@ -1251,8 +1251,7 @@ void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *
       PT_Mean   /= TotalArea;
       Mach_Mean /= TotalArea;
       q_Mean    /= TotalArea;
-//      cout << "PT_MEAN AREA AVERAGED: "<<PT_Mean<<endl;
-//      cout << "TOTAL AREA: "<<TotalArea<<endl;
+
       /*--- Compute the Total pressure at each sector ---*/
       unsigned short Theta = 60;
       unsigned short nAngle = SU2_TYPE::Int(360/float(Theta));
@@ -1274,72 +1273,64 @@ void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *
           /*--- Compute angle of point ---*/
           su2double radius = sqrt(dx*dx+dy*dy+dz*dz);
           su2double add = 0;
-	  if (dy<0) add = 180;
-	  su2double Angle  = atan(dz/dy)*180/PI_NUMBER+add;
-	  if (Angle<0) Angle += 360;
-	  if ((abs(dy)<1e-10)&&(abs(dz)<1e-10)) Angle = -1;
-	  
-          //cout << "Coords"<<endl;
-	  //cout << "dy: "<<dy<<"  dz: "<<dz<<endl;
-          //cout << "Angle: "<<Angle<<endl; 
+          if (dy<0) add = 180;
+          su2double Angle  = atan(dz/dy)*180/PI_NUMBER+add;
+          if (Angle<0) Angle += 360;
+          if ((abs(dy)<1e-10)&&(abs(dz)<1e-10)) Angle = -1;
 
-	  /*--- Compute Total PT and q ---*/
+          /*--- Compute Total PT and q ---*/
           PT_Mean +=Buffer_Recv_PT[Total_Index];
           q_Mean  +=Buffer_Recv_q[Total_Index];
-          TN      +=1;
+          AT      +=Buffer_Send_Area[Total_Index];
 
           if ((Angle>=0) && (Angle<60)){
             PT_Sector[0] += Buffer_Recv_PT[Total_Index];
-            N1+=1;
+            A1+=Buffer_Send_Area[Total_Index];
           
-	  } else if ((Angle>=60) && (Angle<120)){
+          } else if ((Angle>=60) && (Angle<120)){
             PT_Sector[1] += Buffer_Recv_PT[Total_Index];
-            N2+=1;
+            A2+=Buffer_Send_Area[Total_Index];
           
-	  } else if ((Angle>=120) && (Angle<180)){
+          } else if ((Angle>=120) && (Angle<180)){
             PT_Sector[2] += Buffer_Recv_PT[Total_Index];
-            N3+=1;
+            A3+=Buffer_Send_Area[Total_Index];
           
-	  } else if ((Angle>=180) && (Angle<240)){
+          } else if ((Angle>=180) && (Angle<240)){
             PT_Sector[3] += Buffer_Recv_PT[Total_Index];
-            N4+=1;
+            A4+=Buffer_Send_Area[Total_Index];
           
-	  }else if ((Angle>=240) && (Angle<300)){
+          } else if ((Angle>=240) && (Angle<300)){
             PT_Sector[4] += Buffer_Recv_PT[Total_Index];
-            N5+=1;
+            A5+=Buffer_Send_Area[Total_Index];
           
-	  }else if ((Angle>=300) && (Angle<360)){
+          } else if ((Angle>=300) && (Angle<360)){
             PT_Sector[5] += Buffer_Recv_PT[Total_Index];
-            N6+=1;
+            A6+=Buffer_Send_Area[Total_Index];
 
-	  }else if (Angle ==-1){
-//	    PT_Sector[0] += Buffer_Recv_PT[Total_Index]/6;
-//	    PT_Sector[1] += Buffer_Recv_PT[Total_Index]/6;
-//	    PT_Sector[2] += Buffer_Recv_PT[Total_Index]/6;
-//          PT_Sector[3] += Buffer_Recv_PT[Total_Index]/6;
-//	    PT_Sector[4] += Buffer_Recv_PT[Total_Index]/6;
-//	    PT_Sector[5] += Buffer_Recv_PT[Total_Index]/6;
-	  }
+          } else if (Angle ==-1){
+            PT_Sector[0] += Buffer_Recv_PT[Total_Index]/6;
+            PT_Sector[1] += Buffer_Recv_PT[Total_Index]/6;
+            PT_Sector[2] += Buffer_Recv_PT[Total_Index]/6;
+            PT_Sector[3] += Buffer_Recv_PT[Total_Index]/6;
+            PT_Sector[4] += Buffer_Recv_PT[Total_Index]/6;
+            PT_Sector[5] += Buffer_Recv_PT[Total_Index]/6;
+            AM += Buffer_Send_Area[Total_Index]/6; //Middle area split into 6 (if exists)
+          }
         }
       }
       
-      /*--- Average Node sums? ---*/
-//     cout <<TN<<" "<<N1<< " "<<N2<<" "<<N3<<" "<< N4<<" "<<N5<<" "<<N6<<endl;
-      PT_Sector[0] /=N1;
-      PT_Sector[1] /=N2;
-      PT_Sector[2] /=N3;
-      PT_Sector[3] /=N4;
-      PT_Sector[4] /=N5;
-      PT_Sector[5] /=N6;
-      PT_Mean/=TN;
-//      q_Mean/=TN;
-
+      /*--- Area-Average Node sums ---*/
+      PT_Sector[0] /=(A1+AM);
+      PT_Sector[1] /=(A2+AM);
+      PT_Sector[2] /=(A3+AM);
+      PT_Sector[3] /=(A4+AM);
+      PT_Sector[4] /=(A5+AM);
+      PT_Sector[5] /=(A6+AM);
+      PT_Mean/=AT;
+ 
       /*--- Compute the min value of the averaged pressure at each sector ---*/
       PT_Sector_Min = PT_Sector[0];
-//      cout <<"PT_MEAN AFTER: "<<PT_Mean<<endl; 
-      cout <<PT_Sector_Min<<endl;
       for (iAngle = 1; iAngle < nAngle; iAngle++) {
-        cout <<PT_Sector[iAngle]<<endl;
         if (PT_Sector[iAngle] <= PT_Sector_Min) PT_Sector_Min = PT_Sector[iAngle];
       }
 
@@ -1350,7 +1341,6 @@ void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *
       TotalPressure_Inf  = config->GetPressure_FreeStreamND() * pow( 1.0 + Mach_Inf * Mach_Inf *
                                                                     0.5 * (Gamma - 1.0), Gamma    / (Gamma - 1.0));
 
-//      cout <<"TP: "<<TotalPressure_Inf<<endl;
       if (q_Mean != 0.0) DC60 = ((PT_Mean - PT_Sector_Min)*TotalPressure_Inf)/q_Mean;
       else DC60 = 0.0;
       cout << "DC60: " <<DC60<<endl;
