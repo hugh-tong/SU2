@@ -977,21 +977,17 @@ void CFlowOutput::Set_CpInverseDesign(CSolver *solver, CGeometry *geometry, CCon
 
 void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *config) {
 
-  unsigned short iMarker, iDim, iMarker_Analyze;
+  unsigned short iMarker, iDim, iMarker_Analyze, iAngle;
   unsigned long iPoint, iVertex;
   su2double xCoord = 0.0, yCoord = 0.0, zCoord = 0.0, Area = 0.0, *Vector, TotalArea = 0.0;
-  su2double xCoord_CG = 0.0, yCoord_CG = 0.0, zCoord_CG = 0.0, TipRadius, HubRadius, Distance = 0.0;
-  su2double *r, MinDistance, xCoord_ = 0.0, yCoord_ = 0.0, zCoord_ = 0;
-  unsigned short iStation, iAngle, nAngle;
-  su2double *** ProbeArray, dx = 0.0, dy = 0.0, dz = 0.0, UpVector[3], radians, RotatedVector[3];
+  su2double xCoord_CG = 0.0, yCoord_CG = 0.0, zCoord_CG = 0.0;
+  su2double dx = 0.0, dy = 0.0, dz = 0.0;
   su2double Pressure, SoundSpeed, Velocity2, Mach,  Gamma, TotalPressure, Mach_Inf, TotalPressure_Inf,
   Temperature, TotalTemperature, Pressure_Inf, Temperature_Inf, TotalTemperature_Inf, Velocity_Inf, Density;
   unsigned short nDim = geometry->GetnDim();
-  unsigned short Theta, nStation;
   unsigned long nVertex_Surface, nLocalVertex_Surface, MaxLocalVertex_Surface;
   unsigned long Buffer_Send_nVertex[1], *Buffer_Recv_nVertex = NULL;
   unsigned long Total_Index;
-  unsigned short Theta_DC60 = 60, nStation_DC60 = 5;
   su2double PT_Mean, Mach_Mean, q_Mean, PT, q, *PT_Sector, PT_Sector_Min, DC60;
 
   int iProcessor, nProcessor;
@@ -1214,7 +1210,7 @@ void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *
       /*--- Compute the location of the critical points of the distortion measure, and center of gravity ---*/
 
       TotalArea = 0.0; xCoord_CG = 0.0; yCoord_CG = 0.0; zCoord_CG = 0.0; PT_Mean = 0.0; Mach_Mean = 0.0;  q_Mean = 0.0;
-      unsigned short AT = 0, A1 = 0, A2 = 0, A3 = 0, A4 =0, A5 = 0, A6=0;
+      unsigned short AT = 0, AM =0, A1 = 0, A2 = 0, A3 = 0, A4 =0, A5 = 0, A6=0;
       for (iProcessor = 0; iProcessor < nProcessor; iProcessor++) {
         for (iVertex = 0; iVertex < Buffer_Recv_nVertex[iProcessor]; iVertex++) {
 
@@ -1271,7 +1267,6 @@ void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *
           if (nDim == 3) dz = (zCoord - zCoord_CG);
 
           /*--- Compute angle of point ---*/
-          su2double radius = sqrt(dx*dx+dy*dy+dz*dz);
           su2double add = 0;
           if (dy<0) add = 180;
           su2double Angle  = atan(dz/dy)*180/PI_NUMBER+add;
@@ -1343,7 +1338,6 @@ void CFlowOutput::DC60Distortion(CSolver *solver, CGeometry *geometry, CConfig *
 
       if (q_Mean != 0.0) DC60 = ((PT_Mean - PT_Sector_Min)*TotalPressure_Inf)/q_Mean;
       else DC60 = 0.0;
-      cout << "DC60: " <<DC60<<endl;
       config->SetSurface_DC60Distortion(iMarker_Analyze, DC60);
       solver->SetTotal_DC60(DC60);
 
